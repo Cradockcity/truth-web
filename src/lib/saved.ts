@@ -48,6 +48,10 @@ function write(ids: readonly string[]) {
   window.dispatchEvent(new Event(CHANGE_EVENT))
 }
 
+export function replaceSaved(ids: readonly string[]) {
+  write([...new Set(ids)])
+}
+
 export function toggleSaved(id: string) {
   const ids = read()
   write(ids.includes(id) ? ids.filter((saved) => saved !== id) : [id, ...ids])

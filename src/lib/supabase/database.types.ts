@@ -559,6 +559,7 @@ export type Database = {
           total_amount: number
         }[]
       }
+      claim_my_bookings: { Args: never; Returns: number }
       confirm_booking_payment: {
         Args: {
           p_amount_cents: number

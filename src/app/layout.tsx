@@ -3,6 +3,7 @@ import { Archivo } from 'next/font/google'
 
 import { SiteFooter } from '@/components/site/footer'
 import { InlineScript } from '@/components/site/inline-script'
+import { SavedSync } from '@/components/site/saved-sync'
 import { publicEnv } from '@/lib/env'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="flex min-h-full flex-col font-sans">
         {children}
         <SiteFooter />
+        <SavedSync />
       </body>
     </html>
   )
