@@ -33,6 +33,8 @@ export type Database = {
         Row: {
           access_token: string
           booking_date: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
           created_at: string | null
           creator_id: string | null
           creator_snapshot: Json | null
@@ -50,6 +52,9 @@ export type Database = {
           id: string
           paid_at: string | null
           payment_reference: string | null
+          refund_amount: number | null
+          refund_status: string | null
+          refunded_at: string | null
           selected_date: string | null
           selected_time: string | null
           service_fee: number | null
@@ -62,6 +67,8 @@ export type Database = {
         Insert: {
           access_token?: string
           booking_date?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
           creator_id?: string | null
           creator_snapshot?: Json | null
@@ -79,6 +86,9 @@ export type Database = {
           id?: string
           paid_at?: string | null
           payment_reference?: string | null
+          refund_amount?: number | null
+          refund_status?: string | null
+          refunded_at?: string | null
           selected_date?: string | null
           selected_time?: string | null
           service_fee?: number | null
@@ -91,6 +101,8 @@ export type Database = {
         Update: {
           access_token?: string
           booking_date?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
           creator_id?: string | null
           creator_snapshot?: Json | null
@@ -108,6 +120,9 @@ export type Database = {
           id?: string
           paid_at?: string | null
           payment_reference?: string | null
+          refund_amount?: number | null
+          refund_status?: string | null
+          refunded_at?: string | null
           selected_date?: string | null
           selected_time?: string | null
           service_fee?: number | null

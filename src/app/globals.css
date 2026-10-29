@@ -13,6 +13,7 @@
   --color-accent-soft: var(--accent-soft);
   --color-saved: var(--saved);
   --color-danger: var(--danger);
+  --color-success: var(--success);
 }
 
 @theme {
@@ -73,6 +74,7 @@
   --accent-soft: #ebe5f7;
   --saved: #d63d63;
   --danger: #b93e2a;
+  --success: #2f7d55;
 }
 
 /*
@@ -92,6 +94,7 @@
     --accent-soft: #3a2d55;
     --saved: #e8577a;
     --danger: #f0715a;
+    --success: #7cc49a;
   }
 }
 
@@ -113,6 +116,7 @@
   --accent-soft: #3a2d55;
   --saved: #e8577a;
   --danger: #f0715a;
+  --success: #7cc49a;
   color: var(--ink);
 }
 
