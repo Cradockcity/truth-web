@@ -4,12 +4,9 @@ import { refresh, updateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
+import { type FormState, lines, text } from '@/lib/admin/form'
 import { requireAdmin } from '@/lib/admin/guard'
-import { publicEnv } from '@/lib/env'
-
-export type FormState = { error?: string; saved?: string }
-
-const STORAGE_PREFIX = `${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/`
+import { isAllowedImageUrl, storagePath } from '@/lib/images'
 
 // Refreshes the cached public pages, then the admin page the action came from.
 function refreshPublicPages(id: string) {
@@ -18,27 +15,6 @@ function refreshPublicPages(id: string) {
   updateTag('creators')
   refresh()
 }
-
-const lines = (max: number) =>
-  z
-    .string()
-    .optional()
-    .transform((value) =>
-      (value ?? '')
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .slice(0, max),
-    )
-    .pipe(z.array(z.string().max(200, 'Keep each line under 200 characters.')))
-
-const text = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max)
-    .optional()
-    .transform((v) => v || null)
 
 const details = z.object({
   id: z.guid().optional(),
@@ -130,15 +106,7 @@ export async function saveExperienceDetails(
 const photos = z.object({
   id: z.guid(),
   urls: z
-    .array(
-      z
-        .url()
-        .refine(
-          (url) =>
-            url.startsWith(STORAGE_PREFIX) || url.startsWith('https://images.pexels.com/photos/'),
-          'Photos must be uploaded here.',
-        ),
-    )
+    .array(z.url().refine(isAllowedImageUrl, 'Photos must be uploaded here.'))
     .max(12, 'Use at most 12 photos.'),
 })
 
@@ -171,8 +139,8 @@ export async function savePhotos(input: { id: string; urls: string[] }): Promise
     (url): url is string => Boolean(url),
   )
   const removed = previous
-    .filter((url) => !urls.includes(url) && url.startsWith(STORAGE_PREFIX))
-    .map((url) => url.slice(STORAGE_PREFIX.length))
+    .filter((url) => !urls.includes(url))
+    .flatMap((url) => storagePath(url) ?? [])
   if (removed.length > 0) await supabase.storage.from('images').remove(removed)
 
   refreshPublicPages(id)

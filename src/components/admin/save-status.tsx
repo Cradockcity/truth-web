@@ -1,4 +1,5 @@
-import type { FormState } from '@/lib/actions/admin-experiences'
+import { Label } from '@/components/ui/input'
+import type { FormState } from '@/lib/admin/form'
 
 export function SaveStatus({ state }: { state: FormState }) {
   if (state.error) {
@@ -35,5 +36,25 @@ export function Section({
       </div>
       {children}
     </section>
+  )
+}
+
+export function Field({
+  label,
+  htmlFor,
+  hint,
+  children,
+}: {
+  label: string
+  htmlFor: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="grid content-start gap-2">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+      {hint ? <p className="text-caption text-ink/50">{hint}</p> : null}
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-29. The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-29 (4c done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c) → 5 hardening and launch.
 
@@ -13,9 +13,9 @@ Last updated: 2026-10-29. The approved plan and the original audit are in `C:\Us
 | 2 Public browsing (search/filters, detail, creators, saved, SEO) | Done                                            | `f3ba35e`            |
 | 3 Booking, Paystack (test), customer sign-in, My bookings        | Done, except Google sign-in (needs owner setup) | `d1d0e09`, `c1a9daf` |
 | 4a Admin: MFA sign-in, dashboard, bookings, cancel/refund        | Done, tested by owner                           | `50b027a`            |
-| 4b Admin: experience editor                                      | Done, tested by owner                           | (this commit)        |
-| **4c Admin: hosts, creators, privacy migration**                 | **Next (see plan below)**                       | —                    |
-| 5 Hardening and launch                                           | Not started                                     | —                    |
+| 4b Admin: experience editor                                      | Done, tested by owner                           | `c8a63a2`            |
+| 4c Admin: hosts, creators, privacy migration                     | Done, tested                                    | (this commit)        |
+| **5 Hardening and launch**                                       | **Next (see open items below)**                 | —                    |
 
 ## 4b: experience editor (done)
 
@@ -27,10 +27,16 @@ Last updated: 2026-10-29. The approved plan and the original audit are in `C:\Us
 - The details form submits via `onSubmit` + `startTransition`, so a failed save doesn't reset the admin's edits (React resets forms that use `action`).
 - Tested by the owner: details and live/hidden, photos, itinerary, schedule, blocked dates, public page refresh. E2E covers the signed-out lockout of the new pages.
 
-## 4c: plan (resume here)
+## 4c: hosts, creators and privacy (done)
 
-- Hosts CRUD and creators CRUD, including choosing which experiences a creator recommends (`creator_experience_referrals`).
-- **Privacy migration (owner approved):** revoke column `SELECT` on `hosts.email` and `hosts/creators.revenue_share_percentage` from `anon` and `authenticated` (grant other columns explicitly). The admin then reads those columns with the service-role client after `requireAdmin()`. Public `src/lib/data/*` already avoids those columns. The old app's experience pages will break; this is accepted.
+- Migration `20261031090000_private_people_columns.sql` (run by the owner):
+  - revokes table `SELECT` on `hosts` and `creators` from `anon` and `authenticated`, then grants the public columns one by one, so `hosts.email` and `hosts/creators.revenue_share_percentage` are private. Checked from outside with the public key: those columns are refused, public pages still load. The old app's experience pages break (accepted).
+  - adds `admin_replace_creator_experiences(creator, experience_ids[])`: replace-all, `is_admin()` checked, at most 100.
+- Pages `src/app/admin/(console)/{hosts,creators}/{page, new/page, [id]/page}.tsx`; data `src/lib/admin/people.ts` (private columns via the service role after `requireAdmin()`); actions `src/lib/actions/admin-people.ts`; shared form helpers `src/lib/admin/form.ts` (+ test); image helpers `src/lib/images.ts` and `src/lib/upload-image.ts`.
+- Writes go through the signed-in client, so RLS still checks each change. Replaced or removed photos are deleted from Storage on save.
+- Deleting is blocked for a host who runs experiences, and for a creator who has bookings.
+- Social fields accept a handle (`@name`) or a link and store an https link; websites can be typed without `https://`.
+- Tested signed in (owner signed in, Claude drove the browser): host edit, photo upload/replace/remove with old files deleted from Storage, duplicate email error keeps the form, blocked delete of a host with experiences, create and delete a host; creator edit, cover upload, picks change shown on the public page, taken and invalid web address, create, pick and delete a creator. All test changes were reverted. Deleting a creator with bookings was tried with a temporary expired booking (then removed) and is blocked. E2E covers the signed-out lockout of the new pages.
 
 ## Open items before launch (step 5)
 
@@ -45,7 +51,7 @@ Last updated: 2026-10-29. The approved plan and the original audit are in `C:\Us
   - Switch to the Paystack live key once the business is verified.
 - **Vercel:** deploy in region `dub1` (Supabase is in eu-west-1). Add GitHub Actions secrets (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) so CI e2e passes.
 - **Content:** several experience photos don't match their listing (the "kayaking" one shows a motorcycle). Replace them via the admin photo manager.
-- **Dev warning:** `next dev` logs "encountered the unstable value `Date.now()` while prerendering" on signed-in pages (`/admin/*`, `/account/bookings`). It predates 4b, the log gives no stack, and `pnpm build` passes. Find the source (likely Supabase auth or a shared client component) before launch.
+- **Dev warning:** `next dev` logs "encountered the unstable value `Date.now()` while prerendering" on signed-in pages (`/admin/*`, `/account/bookings`). The dev overlay traces it to `@supabase/auth-js` `GoTrueClient._loadSession` (session expiry check), reached from server rendering. `pnpm build` passes. Find which server call reads the session outside a dynamic boundary before launch.
 - **Nice to have:**
   - the header search pill doesn't show the current search;
   - Google ratings caching;

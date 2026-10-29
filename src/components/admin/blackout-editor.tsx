@@ -5,7 +5,8 @@ import { useActionState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
-import { addBlackout, type FormState, removeBlackout } from '@/lib/actions/admin-experiences'
+import { addBlackout, removeBlackout } from '@/lib/actions/admin-experiences'
+import type { FormState } from '@/lib/admin/form'
 import { formatSessionDate } from '@/lib/sessions'
 
 import { SaveStatus } from './save-status'

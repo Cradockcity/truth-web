@@ -5,7 +5,8 @@ import { useState, useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
-import { type FormState, saveSchedule } from '@/lib/actions/admin-experiences'
+import { saveSchedule } from '@/lib/actions/admin-experiences'
+import type { FormState } from '@/lib/admin/form'
 import { cn } from '@/lib/cn'
 import { type ScheduleSlot, toSessions, toSlots, WEEKDAYS } from '@/lib/schedule'
 

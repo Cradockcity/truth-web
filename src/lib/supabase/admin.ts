@@ -7,7 +7,8 @@ import { serverEnv } from '@/lib/env.server'
 
 import type { Database } from './database.types'
 
-// Bypasses row-level security. Use only for server-verified work such as confirming payments.
+// Bypasses row-level security. Use only for server-verified work: confirming payments, and
+// admin reads of private columns (host emails, revenue shares) after requireAdmin().
 export function createAdminClient() {
   return createClient<Database>(
     publicEnv.NEXT_PUBLIC_SUPABASE_URL,

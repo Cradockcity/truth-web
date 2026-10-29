@@ -566,6 +566,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_replace_creator_experiences: {
+        Args: { p_creator_id: string; p_experience_ids: string[] }
+        Returns: number
+      }
       admin_replace_itinerary: {
         Args: { p_experience_id: string; p_steps: Json }
         Returns: number

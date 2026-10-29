@@ -5,19 +5,13 @@ import Image from 'next/image'
 import { useRef, useState, useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { type FormState, savePhotos } from '@/lib/actions/admin-experiences'
+import { savePhotos } from '@/lib/actions/admin-experiences'
+import type { FormState } from '@/lib/admin/form'
 import { cn } from '@/lib/cn'
-import { createClient } from '@/lib/supabase/client'
+import { discardUpload, uploadImage } from '@/lib/upload-image'
 
 import { SaveStatus } from './save-status'
 
-// Matches the "images" storage bucket's rules.
-const TYPES: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-}
-const MAX_BYTES = 2 * 1024 * 1024
 const MAX_PHOTOS = 12
 
 export function PhotoManager({
@@ -39,27 +33,13 @@ export function PhotoManager({
     const room = MAX_PHOTOS - urls.length
     const chosen = [...files].slice(0, room)
     const problems: string[] = []
-    const supabase = createClient()
     setUploading(chosen.length)
     setState({})
 
     for (const file of chosen) {
-      const extension = TYPES[file.type]
-      if (!extension) {
-        problems.push(`${file.name}: use JPG, PNG or WebP.`)
-      } else if (file.size > MAX_BYTES) {
-        problems.push(`${file.name}: larger than 2 MB. Export a smaller version.`)
-      } else {
-        const path = `experiences/${crypto.randomUUID()}.${extension}`
-        const { error } = await supabase.storage
-          .from('images')
-          .upload(path, file, { contentType: file.type, cacheControl: '31536000' })
-        if (error) problems.push(`${file.name}: ${error.message}`)
-        else {
-          const { data } = supabase.storage.from('images').getPublicUrl(path)
-          setUrls((current) => [...current, data.publicUrl])
-        }
-      }
+      const result = await uploadImage(file, 'experiences')
+      if ('error' in result) problems.push(result.error)
+      else setUrls((current) => [...current, result.url])
       setUploading((count) => count - 1)
     }
 
@@ -70,12 +50,8 @@ export function PhotoManager({
 
   function remove(url: string) {
     setUrls((current) => current.filter((item) => item !== url))
-    // Uploaded in this visit but never saved: nothing else points at it, so delete it now.
     // Saved photos are only deleted from storage when the change is saved.
-    if (!initial.includes(url)) {
-      const path = url.split('/storage/v1/object/public/images/')[1]
-      if (path) void createClient().storage.from('images').remove([path])
-    }
+    if (!initial.includes(url)) discardUpload(url)
   }
 
   function move(index: number, by: -1 | 1) {

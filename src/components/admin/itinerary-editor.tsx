@@ -5,7 +5,8 @@ import { useState, useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { type FormState, saveItinerary } from '@/lib/actions/admin-experiences'
+import { saveItinerary } from '@/lib/actions/admin-experiences'
+import type { FormState } from '@/lib/admin/form'
 
 import { SaveStatus } from './save-status'
 

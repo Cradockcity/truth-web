@@ -3,12 +3,13 @@
 import { startTransition, useActionState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Input, Label, Textarea } from '@/components/ui/input'
+import { Input, Textarea } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { type FormState, saveExperienceDetails } from '@/lib/actions/admin-experiences'
+import { saveExperienceDetails } from '@/lib/actions/admin-experiences'
+import type { FormState } from '@/lib/admin/form'
 import type { EditableExperience } from '@/lib/admin/experiences'
 
-import { SaveStatus } from './save-status'
+import { Field, SaveStatus } from './save-status'
 
 export function ExperienceDetailsForm({
   experience,
@@ -180,25 +181,5 @@ export function ExperienceDetailsForm({
         <SaveStatus state={state} />
       </div>
     </form>
-  )
-}
-
-function Field({
-  label,
-  htmlFor,
-  hint,
-  children,
-}: {
-  label: string
-  htmlFor: string
-  hint?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="grid content-start gap-2">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-      {hint ? <p className="text-caption text-ink/50">{hint}</p> : null}
-    </div>
   )
 }

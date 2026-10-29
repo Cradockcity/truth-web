@@ -53,7 +53,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `data/`: public, cached reads (`"use cache"` + `cacheTag`). They select only public-safe columns.
   - `admin/`: admin reads (guarded).
   - `actions/`: server actions (Zod-validated).
-  - `supabase/`: clients, plus `admin.ts`, a service-role client used only for payments.
+  - `supabase/`: clients, plus `admin.ts`, a service-role client used only for payments and, after `requireAdmin()`, admin reads of private columns.
 
 ## Conventions
 
@@ -72,7 +72,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `is_admin()`: a row in `public.admins` plus `aal2`.
   - `get_availability`, `create_booking`, `get_booking` (token or owner).
   - `attach_payment_reference`, `confirm_booking_payment` (service role only).
-  - `claim_my_bookings`, `admin_replace_itinerary`, `admin_replace_schedule`.
+  - `claim_my_bookings`, `admin_replace_itinerary`, `admin_replace_schedule`, `admin_replace_creator_experiences`.
+  - Private columns: `hosts.email` and `hosts/creators.revenue_share_percentage` have no `SELECT` for `anon`/`authenticated` (column grants only). Never `select('*')` on `hosts` or `creators` with the user clients; admins read them in `src/lib/admin/people.ts` with the service role.
   - Tables `experience_schedules`, `experience_blackouts`, `saved_experiences`, `admins`.
 
 ## Secrets (`.env.local`, git-ignored)
