@@ -16,15 +16,17 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense, type ReactNode } from 'react'
 
+import { BookingWidget } from '@/components/booking/booking-widget'
 import { Gallery } from '@/components/experience/gallery'
 import { SiteHeader } from '@/components/site/header'
+import { buttonVariants } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import {
   type ExperienceDetail,
   getActiveExperienceIds,
   getExperience,
 } from '@/lib/data/experiences'
-import { filtersToSearch } from '@/lib/filters'
+import { filtersToSearch, parseGroupSize } from '@/lib/filters'
 import { formatRand } from '@/lib/format'
 
 export async function generateStaticParams() {
@@ -102,12 +104,19 @@ async function ExperienceDetails({ id }: { id: string }) {
 
       <Gallery id={experience.id} title={experience.title} images={experience.images} />
 
-      <div className="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16">
-        <div className="flex min-w-0 flex-col gap-10">
+      {/* One booking card: beside the content on desktop, straight after the title on phones. */}
+      <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-16">
+        <div className="min-w-0 lg:col-start-1">
           <TitleBlock experience={experience} />
-          <div className="lg:hidden">
+        </div>
+
+        <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <div className="lg:sticky lg:top-24">
             <BookingCard experience={experience} />
           </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-col gap-10 lg:col-start-1">
           <Facts experience={experience} />
           {experience.host ? <HostCard host={experience.host} /> : null}
 
@@ -174,13 +183,8 @@ async function ExperienceDetails({ id }: { id: string }) {
           <GoodToKnow experience={experience} />
           <Reviews experience={experience} />
         </div>
-
-        <aside className="hidden lg:block">
-          <div className="sticky top-24">
-            <BookingCard experience={experience} />
-          </div>
-        </aside>
       </div>
+      <MobileBookingBar price={experience.price} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(experience) }} />
     </>
   )
@@ -236,31 +240,43 @@ function Rating({ rating, count }: { rating: number | null; count: number | null
 
 function BookingCard({ experience }: { experience: ExperienceDetail }) {
   return (
-    <div className="flex flex-col gap-5 rounded-sheet border border-line bg-control p-6 shadow-float">
+    <section
+      id="book"
+      aria-label="Book this experience"
+      className="flex scroll-mt-24 flex-col gap-5 rounded-sheet border border-line bg-control p-6 shadow-float"
+    >
       <p>
         <span className="text-title font-semibold">{formatRand(experience.price)}</span>
         <span className="text-ink/60"> per person</span>
       </p>
-      <ul className="flex flex-col gap-3 text-caption text-ink/75">
-        {experience.duration ? (
-          <li className="flex items-center gap-2.5">
-            <Clock className="size-4" aria-hidden /> {experience.duration}
-          </li>
-        ) : null}
-        {experience.groupSize ? (
-          <li className="flex items-center gap-2.5">
-            <Users className="size-4" aria-hidden /> {experience.groupSize}
-          </li>
-        ) : null}
-        {experience.cancellationPolicy ? (
-          <li className="flex items-center gap-2.5">
-            <CalendarX className="size-4" aria-hidden /> {experience.cancellationPolicy}
-          </li>
-        ) : null}
-      </ul>
-      <p className="rounded-control bg-surface px-4 py-3 text-caption text-ink/70">
-        Online booking opens soon. Save this experience with the heart to find it again.
-      </p>
+      <BookingWidget
+        experienceId={experience.id}
+        price={experience.price}
+        maxGuests={parseGroupSize(experience.groupSize) ?? 30}
+      />
+      {experience.cancellationPolicy ? (
+        <p className="flex items-start gap-2.5 text-caption text-ink/65">
+          <CalendarX className="mt-0.5 size-4 shrink-0" aria-hidden />
+          {experience.cancellationPolicy}
+        </p>
+      ) : null}
+    </section>
+  )
+}
+
+// Phones: the booking card sits below the content, so keep price and a shortcut in reach.
+function MobileBookingBar({ price }: { price: number }) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas/95 px-4 py-3 backdrop-blur-xl lg:hidden">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+        <p>
+          <span className="font-semibold">{formatRand(price)}</span>
+          <span className="text-caption text-ink/60"> per person</span>
+        </p>
+        <a href="#book" className={buttonVariants()}>
+          Check dates
+        </a>
+      </div>
     </div>
   )
 }

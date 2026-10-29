@@ -14,61 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
+          access_token: string
+          booking_date: string | null
           created_at: string | null
           creator_id: string | null
           creator_snapshot: Json | null
+          currency: string
           customer_email: string | null
+          customer_id: string | null
           customer_name: string | null
           customer_phone: string | null
           experience_id: string | null
           experience_snapshot: Json | null
+          expires_at: string | null
           guest_count: number | null
           host_id: string | null
           host_snapshot: Json | null
           id: string
+          paid_at: string | null
+          payment_reference: string | null
           selected_date: string | null
           selected_time: string | null
+          service_fee: number | null
+          start_time: string | null
           status: string | null
+          subtotal: number | null
           total_amount: number | null
           updated_at: string | null
         }
         Insert: {
+          access_token?: string
+          booking_date?: string | null
           created_at?: string | null
           creator_id?: string | null
           creator_snapshot?: Json | null
+          currency?: string
           customer_email?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           experience_id?: string | null
           experience_snapshot?: Json | null
+          expires_at?: string | null
           guest_count?: number | null
           host_id?: string | null
           host_snapshot?: Json | null
           id?: string
+          paid_at?: string | null
+          payment_reference?: string | null
           selected_date?: string | null
           selected_time?: string | null
+          service_fee?: number | null
+          start_time?: string | null
           status?: string | null
+          subtotal?: number | null
           total_amount?: number | null
           updated_at?: string | null
         }
         Update: {
+          access_token?: string
+          booking_date?: string | null
           created_at?: string | null
           creator_id?: string | null
           creator_snapshot?: Json | null
+          currency?: string
           customer_email?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           experience_id?: string | null
           experience_snapshot?: Json | null
+          expires_at?: string | null
           guest_count?: number | null
           host_id?: string | null
           host_snapshot?: Json | null
           id?: string
+          paid_at?: string | null
+          payment_reference?: string | null
           selected_date?: string | null
           selected_time?: string | null
+          service_fee?: number | null
+          start_time?: string | null
           status?: string | null
+          subtotal?: number | null
           total_amount?: number | null
           updated_at?: string | null
         }
@@ -189,6 +234,32 @@ export type Database = {
         }
         Relationships: []
       }
+      experience_blackouts: {
+        Row: {
+          date: string
+          experience_id: string
+          reason: string | null
+        }
+        Insert: {
+          date: string
+          experience_id: string
+          reason?: string | null
+        }
+        Update: {
+          date?: string
+          experience_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_blackouts_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experience_itineraries: {
         Row: {
           activity: string | null
@@ -217,6 +288,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "experience_itineraries_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_schedules: {
+        Row: {
+          capacity: number
+          created_at: string
+          experience_id: string
+          id: string
+          is_active: boolean
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          experience_id: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          experience_id?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_schedules_experience_id_fkey"
             columns: ["experience_id"]
             isOneToOne: false
             referencedRelation: "experiences"
@@ -411,12 +520,107 @@ export type Database = {
           },
         ]
       }
+      saved_experiences: {
+        Row: {
+          created_at: string
+          experience_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          experience_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          experience_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_experiences_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      attach_payment_reference: {
+        Args: { p_booking_id: string; p_reference: string }
+        Returns: {
+          currency: string
+          customer_email: string
+          total_amount: number
+        }[]
+      }
+      confirm_booking_payment: {
+        Args: {
+          p_amount_cents: number
+          p_currency: string
+          p_reference: string
+        }
+        Returns: {
+          access_token: string
+          booking_id: string
+          outcome: string
+        }[]
+      }
+      create_booking: {
+        Args: {
+          p_creator_slug?: string
+          p_date: string
+          p_email: string
+          p_experience_id: string
+          p_guests: number
+          p_name: string
+          p_phone?: string
+          p_start_time: string
+        }
+        Returns: {
+          access_token: string
+          booking_id: string
+          total_amount: number
+        }[]
+      }
+      get_availability: {
+        Args: { p_days?: number; p_experience_id: string; p_from: string }
+        Returns: {
+          capacity: number
+          remaining: number
+          slot_date: string
+          start_time: string
+        }[]
+      }
+      get_booking: {
+        Args: { p_access_token?: string; p_booking_id: string }
+        Returns: {
+          booking_date: string
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          experience_id: string
+          experience_image: string
+          experience_location: string
+          experience_title: string
+          expires_at: string
+          guest_count: number
+          id: string
+          paid_at: string
+          service_fee: number
+          start_time: string
+          status: string
+          subtotal: number
+          total_amount: number
+        }[]
+      }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

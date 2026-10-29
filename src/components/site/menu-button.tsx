@@ -2,7 +2,6 @@
 
 import { Compass, Heart, Home, Menu } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 import { buttonVariants } from '@/components/ui/button'
@@ -20,7 +19,6 @@ const LINKS = [
 
 export function MenuButton({ overlay, className }: { overlay: boolean; className?: string }) {
   const [open, setOpen] = useState(false)
-  const pathname = usePathname()
   const savedCount = useSavedIds().length
 
   return (
@@ -44,8 +42,7 @@ export function MenuButton({ overlay, className }: { overlay: boolean; className
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              aria-current={pathname === href ? 'page' : undefined}
-              className="flex items-center gap-3 rounded-control px-3 py-3 text-body font-medium transition-colors hover:bg-ink/6 aria-[current=page]:bg-ink/6"
+              className="flex items-center gap-3 rounded-control px-3 py-3 text-body font-medium transition-colors hover:bg-ink/6"
             >
               <Icon className="size-5 text-ink/70" aria-hidden />
               <span className="flex-1">{label}</span>
