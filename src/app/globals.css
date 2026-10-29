@@ -14,6 +14,9 @@
   --color-saved: var(--saved);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  /* Chart series (validated light and dark with the dataviz palette check). */
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
 }
 
 @theme {
@@ -75,6 +78,8 @@
   --saved: #d63d63;
   --danger: #b93e2a;
   --success: #2f7d55;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
 }
 
 /*
@@ -95,6 +100,8 @@
     --saved: #e8577a;
     --danger: #f0715a;
     --success: #7cc49a;
+    --series-1: #3987e5;
+    --series-2: #d95926;
   }
 }
 
@@ -117,6 +124,8 @@
   --saved: #e8577a;
   --danger: #f0715a;
   --success: #7cc49a;
+  --series-1: #3987e5;
+  --series-2: #d95926;
   color: var(--ink);
 }
 
@@ -135,6 +144,8 @@
     --saved: #d63d63;
     --danger: #b93e2a;
     --success: #2f7d55;
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
   }
 }
 

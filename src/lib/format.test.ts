@@ -13,3 +13,8 @@ test('shows exact cents when an amount has them', () => {
   expect(formatRand(8.5)).toBe('R8,50')
   expect(plain(formatRand(1178.5))).toBe('R1 178,50')
 })
+
+test('negative amounts keep the symbol attached, like -R7,11', () => {
+  expect(formatRand(-7.11)).toBe('-R7,11')
+  expect(plain(formatRand(-1250))).toBe('-R1 250')
+})

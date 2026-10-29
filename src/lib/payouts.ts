@@ -96,8 +96,8 @@ export function formatDay(date: string) {
 export const PAYOUTS_PER_PAGE = 50
 
 export type PayoutFilters = {
-  from: string | null
-  to: string | null
+  year: number
+  month: string | null // "2026-10", within the year; the list and CSV narrow to it
   recipient: Recipient | null
   personId: string | null
   page: number
@@ -105,23 +105,32 @@ export type PayoutFilters = {
 
 type Params = Record<string, string | string[] | undefined>
 const one = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)
-const isDay = (value: string | undefined): value is string =>
-  !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value))
 
 // "person" is "host:<id>" or "creator:<id>", so one dropdown covers both.
-export function parsePayoutFilters(params: Params): PayoutFilters {
-  const month = monthRange(one(params.month) ?? '')
-  const from = one(params.from)
-  const to = one(params.to)
+export function parsePayoutFilters(params: Params, thisYear: number): PayoutFilters {
+  const requested = Number(one(params.year))
+  const year =
+    Number.isInteger(requested) && requested >= 2020 && requested <= 2100 ? requested : thisYear
+  const month = one(params.month)
   const person = /^(host|creator):([0-9a-f-]{36})$/i.exec(one(params.person) ?? '')
   const page = Number(one(params.page))
   return {
-    from: isDay(from) ? from : (month?.[0] ?? null),
-    to: isDay(to) ? to : (month?.[1] ?? null),
+    year,
+    month: month && monthRange(month) && month.startsWith(`${year}-`) ? month : null,
     recipient: person ? (person[1]!.toLowerCase() as Recipient) : null,
     personId: person ? person[2]!.toLowerCase() : null,
     page: Number.isInteger(page) && page > 1 && page <= 1000 ? page : 1,
   }
+}
+
+// The payment dates the filters cover: the chosen month, or the whole year.
+export function payoutRange(filters: PayoutFilters): [string, string] {
+  return (
+    (filters.month && monthRange(filters.month)) || [
+      `${filters.year}-01-01`,
+      `${filters.year}-12-31`,
+    ]
+  )
 }
 
 export function payoutFiltersToParams(
@@ -129,10 +138,75 @@ export function payoutFiltersToParams(
   changes: Partial<PayoutFilters> = {},
 ) {
   const next = { ...filters, ...changes }
-  const params = new URLSearchParams()
-  if (next.from) params.set('from', next.from)
-  if (next.to) params.set('to', next.to)
+  const params = new URLSearchParams({ year: String(next.year) })
+  if (next.month) params.set('month', next.month)
   if (next.recipient && next.personId) params.set('person', `${next.recipient}:${next.personId}`)
   if (next.page > 1) params.set('page', String(next.page))
   return params
+}
+
+const monthName = new Intl.DateTimeFormat('en-GB', { month: 'short', timeZone: 'UTC' })
+const monthAndYear = new Intl.DateTimeFormat('en-GB', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
+// The twelve months of a year: "2026-03", "Mar", "March 2026".
+export function monthsOf(year: number) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(Date.UTC(year, index, 1))
+    return {
+      key: `${year}-${String(index + 1).padStart(2, '0')}`,
+      short: monthName.format(date),
+      long: monthAndYear.format(date),
+    }
+  })
+}
+
+type PaidRow = {
+  recipient: Recipient
+  personId: string
+  name: string
+  amount: number
+  paidOn: string
+  bookingCount: number
+}
+
+// Payments per month of the year, split by hosts and creators.
+export function groupPayoutsByMonth(payouts: readonly PaidRow[], year: number) {
+  return monthsOf(year).map((month) => {
+    const inMonth = payouts.filter((payout) => payout.paidOn.startsWith(month.key))
+    const hosts = sumAmounts(inMonth.filter((payout) => payout.recipient === 'host'))
+    const creators = sumAmounts(inMonth.filter((payout) => payout.recipient === 'creator'))
+    return { ...month, payments: inMonth.length, hosts, creators, total: sumAmounts(inMonth) }
+  })
+}
+
+// Payments per person, most paid first.
+export function groupPayoutsByPerson(payouts: readonly PaidRow[]) {
+  const people = new Map<
+    string,
+    { recipient: Recipient; personId: string; name: string; payments: PaidRow[] }
+  >()
+  for (const payout of payouts) {
+    const key = `${payout.recipient}:${payout.personId}`
+    const person = people.get(key) ?? { ...payout, payments: [] }
+    person.payments.push(payout)
+    people.set(key, person)
+  }
+  return [...people.values()]
+    .map(({ payments, ...person }) => ({
+      recipient: person.recipient,
+      personId: person.personId,
+      name: person.name,
+      payments: payments.length,
+      bookings: payments.reduce((count, payout) => count + payout.bookingCount, 0),
+      total: sumAmounts(payments),
+      lastPaid: payments.reduce(
+        (last, payout) => (payout.paidOn > last ? payout.paidOn : last),
+        '',
+      ),
+    }))
+    .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name))
 }

@@ -60,7 +60,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Pages and caching:** pages that read `params`, `searchParams`, cookies or `new Date()` put that work inside `<Suspense>` (Cache Components rule). Use `params.then(...)` inside Suspense, or `await connection()` for live data.
 - **Cache refresh:** admin writes call `updateTag('experiences' | 'experience:<id>' | 'creators')` so the cached public pages refresh.
 - **Login state** is read in the browser (`useUser`) so public pages stay static. Don't read cookies in shared layouts.
-- **Colours:** use role tokens only: `canvas surface raised control line ink accent accent-soft saved danger success`. Use `night` and `bone` only for UI over photos (`.scheme-dark`, the `glass` utility). The `light:` variant targets light mode (OS or chosen).
+- **Colours:** use role tokens only: `canvas surface raised control line ink accent accent-soft saved danger success`, plus `series-1`/`series-2` for chart series only (validated with the dataviz palette check). Charts use `src/components/admin/bar-chart.tsx`. Use `night` and `bone` only for UI over photos (`.scheme-dark`, the `glass` utility). The `light:` variant targets light mode (OS or chosen).
 - **Copy:** plain language, sentence case, specific error messages, en-ZA rands via `formatRand` (`R180`, `R178,50`).
 
 ## Database workflow (important)
@@ -74,6 +74,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `attach_payment_reference`, `confirm_booking_payment` (service role only).
   - `claim_my_bookings`, `admin_replace_itinerary`, `admin_replace_schedule`, `admin_replace_creator_experiences`, `admin_record_payout`, `admin_undo_payout`.
   - Payouts: `payout_items` (earnings) and `payouts` (money sent), admin read-only. A trigger on `bookings` records earnings when a booking becomes paid and voids unpaid ones when it is cancelled. A host's percentage is Truth's commission; a creator's is their share, paid from Truth's part.
+  - `bookings.paystack_fee` / `payment_channel`: saved by `confirmPayment` from Paystack's verify response; used by the Revenue report.
   - Private columns: `hosts.email` and `hosts/creators.revenue_share_percentage` have no `SELECT` for `anon`/`authenticated` (column grants only). Never `select('*')` on `hosts` or `creators` with the user clients; admins read them in `src/lib/admin/people.ts` with the service role.
   - Tables `experience_schedules`, `experience_blackouts`, `saved_experiences`, `admins`.
 

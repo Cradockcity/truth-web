@@ -4,10 +4,13 @@ import { csvResponse, toCsv } from '@/lib/csv'
 import { parsePayoutFilters } from '@/lib/payouts'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
-// Payments matching the history's filters, one line per booking paid. exportPayouts checks
+// Payments for the history's year (or month) and person, one line per booking paid. exportPayouts checks
 // for an admin.
 export async function GET(request: Request) {
-  const filters = parsePayoutFilters(Object.fromEntries(new URL(request.url).searchParams))
+  const filters = parsePayoutFilters(
+    Object.fromEntries(new URL(request.url).searchParams),
+    Number(todayInSouthAfrica().slice(0, 4)),
+  )
   const payouts = await exportPayouts(filters)
 
   const csv = toCsv(

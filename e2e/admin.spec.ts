@@ -13,9 +13,11 @@ for (const path of [
   '/admin/creators/b1000000-0000-0000-0000-000000000001',
   '/admin/payouts',
   '/admin/payouts/host/a3000000-0000-0000-0000-000000000003',
-  '/admin/payouts/payments',
-  '/admin/payouts/payments/a3000000-0000-0000-0000-000000000003',
-  '/admin/payouts/payments/export',
+  '/admin/payment-history',
+  '/admin/payment-history/a3000000-0000-0000-0000-000000000003',
+  '/admin/payment-history/export',
+  '/admin/revenue',
+  '/admin/revenue/export?year=2026',
   '/admin/bookings/export?when=all',
 ]) {
   test(`${path} is locked to signed-out visitors`, async ({ page, request }) => {

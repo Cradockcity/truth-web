@@ -1,9 +1,11 @@
 import {
   CalendarCheck,
   Compass,
+  History,
   LayoutDashboard,
   LogOut,
   Sparkles,
+  TrendingUp,
   Users,
   Wallet,
 } from 'lucide-react'
@@ -24,6 +26,8 @@ const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
   { href: '/admin/payouts', label: 'Payouts', icon: Wallet },
+  { href: '/admin/payment-history', label: 'Payment history', icon: History },
+  { href: '/admin/revenue', label: 'Revenue', icon: TrendingUp },
   { href: '/admin/experiences', label: 'Experiences', icon: Compass },
   { href: '/admin/hosts', label: 'Hosts', icon: Users },
   { href: '/admin/creators', label: 'Creators', icon: Sparkles },

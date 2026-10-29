@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 import { RecipientChip } from '@/components/admin/recipient-chip'
+import { Stat } from '@/components/admin/report-parts'
 import { Section } from '@/components/admin/save-status'
 import { getPayoutsOverview } from '@/lib/admin/payouts'
 import { formatRand } from '@/lib/format'
@@ -10,7 +11,7 @@ import { formatDay, groupOwed, type Owed, sumAmounts } from '@/lib/payouts'
 export const metadata = { title: 'Payouts' }
 
 export default async function AdminPayoutsPage() {
-  const { open, recent, paidThisMonth } = await getPayoutsOverview()
+  const { open } = await getPayoutsOverview()
   const people = groupOwed(open)
   const due = people.filter((person) => person.due.count > 0)
   const upcoming = people.filter((person) => person.upcoming.count > 0)
@@ -21,11 +22,16 @@ export default async function AdminPayoutsPage() {
         <h1 className="text-headline font-wide">Payouts</h1>
         <p className="max-w-2xl text-ink/70">
           What Truth owes hosts and creators for paid bookings. Each booking becomes due the day
-          after the experience. Pay by bank transfer, then record it here.
+          after the experience. Pay by bank transfer, then record it here. Past payments and their
+          statements are under{' '}
+          <Link href="/admin/payment-history" className="underline underline-offset-4">
+            Payment history
+          </Link>
+          .
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Stat
           label="Due now"
           value={formatRand(sumAmounts(due.map((person) => ({ amount: person.due.total }))))}
@@ -38,7 +44,6 @@ export default async function AdminPayoutsPage() {
           )}
           detail="For experiences not yet done"
         />
-        <Stat label="Paid this month" value={formatRand(paidThisMonth)} detail="Recorded here" />
       </div>
 
       <Section title="Due now" description="Experiences that have happened. Ready to pay.">
@@ -76,62 +81,11 @@ export default async function AdminPayoutsPage() {
           </PeopleList>
         )}
       </Section>
-
-      <Section
-        title="Recent payments"
-        description="The last 20 payments recorded. Open one for its statement."
-      >
-        <Link
-          href="/admin/payouts/payments"
-          className="-mt-2 self-start text-caption font-semibold underline-offset-4 hover:underline"
-        >
-          All payments, by month or person
-        </Link>
-        {recent.length === 0 ? (
-          <Empty>No payments recorded yet.</Empty>
-        ) : (
-          <PeopleList>
-            {recent.map((payout) => (
-              <li key={payout.id}>
-                <Link
-                  href={`/admin/payouts/payments/${payout.id}`}
-                  className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-surface"
-                >
-                  <span className="w-28 shrink-0 text-caption text-ink/60">
-                    {formatDay(payout.paidOn)}
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="flex items-center gap-2 font-medium">
-                      <span className="truncate">{payout.name}</span>
-                      <RecipientChip recipient={payout.recipient} />
-                    </span>
-                    <span className="truncate text-caption text-ink/60">
-                      {count(payout.bookingCount)}
-                      {payout.reference ? ` · ref ${payout.reference}` : ''}
-                    </span>
-                  </span>
-                  <span className="font-medium tabular-nums">{formatRand(payout.amount)}</span>
-                </Link>
-              </li>
-            ))}
-          </PeopleList>
-        )}
-      </Section>
     </div>
   )
 }
 
 const count = (n: number) => (n === 1 ? '1 booking' : `${n} bookings`)
-
-function Stat({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return (
-    <div className="flex flex-col gap-1 rounded-sheet border border-line bg-control p-5">
-      <span className="text-caption text-ink/60">{label}</span>
-      <span className="text-headline font-wide tabular-nums">{value}</span>
-      <span className="text-caption text-ink/55">{detail}</span>
-    </div>
-  )
-}
 
 function PeopleList({ children }: { children: React.ReactNode }) {
   return (

@@ -51,7 +51,9 @@ export type Database = {
           host_snapshot: Json | null
           id: string
           paid_at: string | null
+          payment_channel: string | null
           payment_reference: string | null
+          paystack_fee: number | null
           refund_amount: number | null
           refund_status: string | null
           refunded_at: string | null
@@ -85,7 +87,9 @@ export type Database = {
           host_snapshot?: Json | null
           id?: string
           paid_at?: string | null
+          payment_channel?: string | null
           payment_reference?: string | null
+          paystack_fee?: number | null
           refund_amount?: number | null
           refund_status?: string | null
           refunded_at?: string | null
@@ -119,7 +123,9 @@ export type Database = {
           host_snapshot?: Json | null
           id?: string
           paid_at?: string | null
+          payment_channel?: string | null
           payment_reference?: string | null
+          paystack_fee?: number | null
           refund_amount?: number | null
           refund_status?: string | null
           refunded_at?: string | null

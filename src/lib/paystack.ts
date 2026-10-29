@@ -59,6 +59,9 @@ const verified = z.object({
   reference: z.string(),
   amount: z.number().int(),
   currency: z.string(),
+  // Paystack's own fee in cents, and how the guest paid (card, eft, ...). Present once paid.
+  fees: z.number().int().nullish(),
+  channel: z.string().nullish(),
 })
 
 export async function verifyTransaction(reference: string) {

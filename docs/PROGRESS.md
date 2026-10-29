@@ -1,8 +1,8 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-29 (4e booking search and payout reports done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-29 (4f payment history and revenue reports done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
-**Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e reports) → 5 hardening and launch (postponed by the owner).
+**Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
 ## Status
 
@@ -16,7 +16,8 @@ Last updated: 2026-10-29 (4e booking search and payout reports done). The approv
 | 4b Admin: experience editor                                      | Done, tested by owner                           | `c8a63a2`            |
 | 4c Admin: hosts, creators, privacy migration                     | Done, tested                                    | `5525d02`            |
 | 4d Admin: payouts to hosts and creators, creator credit          | Done, tested                                    | `df9a1f6`            |
-| 4e Admin: booking search, payment statements and history, CSV    | Done, tested                                    | (this commit)        |
+| 4e Admin: booking search, payment statements and history, CSV    | Done, tested                                    | `f79ec2d`            |
+| 4f Admin: Payment history and Revenue reports, Paystack fees     | Done, tested                                    | (this commit)        |
 | **5 Hardening and launch**                                       | **Next (see open items below)**                 | —                    |
 
 ## 4b: experience editor (done)
@@ -92,6 +93,42 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`. No database ch
   - one R246,40 payment covering two of Michael's bookings, its statement, and the history filters.
   - Test data was removed afterwards. E2E covers the signed-out lockout of the new pages and both downloads.
   - The print preview itself wasn't seen (the browser panel can't show it); the print rules were checked in the page's styles.
+
+## 4f: Payment history and Revenue reports (done)
+
+Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
+
+- **Menu:** Dashboard, Bookings, **Payouts** (only who's owed: Due now and Upcoming), **Payment history**, **Revenue**, Experiences, Hosts, Creators.
+  - The history moved from `/admin/payouts/payments` to `/admin/payment-history` (statement `/admin/payment-history/[id]`, CSV `/export`).
+  - After recording a payment, the message links to its statement.
+- **Payment history** (owner's "reporting screen"):
+  - filters for year and person;
+  - cards: paid in the year, to hosts, to creators, payments;
+  - a stacked chart per month (hosts and creators), a month table (each month links to its payments), a by-person table;
+  - the payments list (paged) with statements, and the per-booking CSV.
+  - Helpers `groupPayoutsByMonth`, `groupPayoutsByPerson`, `parsePayoutFilters(year, month, person)` in `src/lib/payouts.ts` (+ tests).
+- **Revenue** (`/admin/revenue`): what Truth made per booking.
+  - **Formula:** guest paid − refunds − host share − creator share − Paystack fee. Cancelled-and-voided shares are 0; shares paid out before a cancellation count; Paystack keeps its fee on refunds.
+  - Grouped by experience date. Filters: year, month, experience, host.
+  - Cards (with margin %), a chart per month (negative months hang below zero), a month table, a per-booking table with links, and CSV.
+  - Maths in `src/lib/revenue.ts` (+ tests), data in `src/lib/admin/revenue.ts`. Old-app paid bookings (no `paid_at`) are included.
+- **Paystack fees:**
+  - Migration `20261102090000_paystack_fees.sql` (run by the owner) adds `bookings.paystack_fee` and `payment_channel`.
+  - `confirmPayment` saves them from Paystack's verify response (`fees` in cents, `channel`) once paid, including `already_paid`.
+  - The older test payments were backfilled from Paystack's test API. Refunded payments are "reversed" but still carry the fee.
+  - The old-app booking has no Paystack payment: shown as "Not recorded" (R0).
+- **Shared pieces:**
+  - `src/components/admin/bar-chart.tsx`: CSS columns, ≤24px, 4px rounded ends, 2px gaps, hover/focus tooltip, legend for 2 series, direct labels only on the best/worst month; the tables are the data view.
+  - `report-parts.tsx`: `Stat`, `FilterLink`, `FilterField`, `Pager`.
+  - Chart colours `series-1`/`series-2` were checked with the dataviz palette validator in light and dark, and are forced light when printing.
+- `formatRand` now formats negatives as `-R7,11`.
+- **Tested:**
+  - a real Paystack test-checkout payment through a creator's page: creator credited, earnings R60 + R3,75, fee R3,79 saved, Truth made R11,21;
+  - Revenue totals and CSV checked by hand;
+  - Payment history filters, the stacked chart (temporary creator payment, then undone), statements and CSV;
+  - light and dark.
+  - Test data was removed afterwards; the owner's own R126,40 payment (ref 12344) stays.
+- **Dev note:** the dev server on :3000 (started by another chat) was still running the old payment code, so it didn't save the fee. A fresh build did. Restart that dev server before testing payments.
 
 ## Open items before launch (step 5)
 

@@ -2,8 +2,9 @@ import { Download } from 'lucide-react'
 import Link from 'next/link'
 
 import { BookingTable } from '@/components/admin/booking-table'
+import { FilterField, FilterLink, Pager } from '@/components/admin/report-parts'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Input, Label } from '@/components/ui/input'
+import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { getBookingFilterOptions, getBookingTotals, listBookings } from '@/lib/admin/bookings'
 import {
@@ -14,7 +15,6 @@ import {
   bookingFiltersToParams,
   parseBookingFilters,
 } from '@/lib/booking-filters'
-import { cn } from '@/lib/cn'
 import { formatRand } from '@/lib/format'
 import { formatDay } from '@/lib/payouts'
 
@@ -45,8 +45,6 @@ export default async function AdminBookingsPage({ searchParams }: PageProps<'/ad
     return `/admin/bookings${params.size ? `?${params}` : ''}`
   }
   const range = filters.from || filters.to
-  const first = (filters.page - 1) * BOOKINGS_PER_PAGE + 1
-  const last = Math.min(filters.page * BOOKINGS_PER_PAGE, count)
 
   return (
     <div className="flex flex-col gap-6">
@@ -186,73 +184,12 @@ export default async function AdminBookingsPage({ searchParams }: PageProps<'/ad
 
       <BookingTable bookings={bookings} />
 
-      {count > BOOKINGS_PER_PAGE ? (
-        <nav aria-label="Pages" className="flex items-center justify-between gap-4 text-caption">
-          <span className="text-ink/60">
-            Showing {first}–{last} of {count}
-          </span>
-          <span className="flex gap-2">
-            {filters.page > 1 ? (
-              <Link
-                href={href({ page: filters.page - 1 })}
-                className={buttonVariants({ variant: 'secondary', size: 'sm' })}
-              >
-                Previous
-              </Link>
-            ) : null}
-            {last < count ? (
-              <Link
-                href={href({ page: filters.page + 1 })}
-                className={buttonVariants({ variant: 'secondary', size: 'sm' })}
-              >
-                Next
-              </Link>
-            ) : null}
-          </span>
-        </nav>
-      ) : null}
+      <Pager
+        page={filters.page}
+        perPage={BOOKINGS_PER_PAGE}
+        count={count}
+        href={(page) => href({ page })}
+      />
     </div>
-  )
-}
-
-function FilterField({
-  label,
-  htmlFor,
-  className,
-  children,
-}: {
-  label: string
-  htmlFor: string
-  className?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className={cn('grid content-start gap-2', className)}>
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-    </div>
-  )
-}
-
-function FilterLink({
-  href,
-  active,
-  children,
-}: {
-  href: string
-  active: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? 'page' : undefined}
-      className={cn(
-        'flex h-9 items-center rounded-full border px-3.5 text-caption font-medium transition-colors',
-        active ? 'border-ink bg-ink text-canvas' : 'border-line bg-control hover:border-ink/40',
-      )}
-    >
-      {children}
-    </Link>
   )
 }

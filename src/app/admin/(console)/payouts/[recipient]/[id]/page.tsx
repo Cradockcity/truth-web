@@ -50,7 +50,13 @@ export default async function PersonPayoutsPage({
         </Link>
         {recorded ? (
           <p role="status" className="text-caption text-success">
-            Recorded {formatRand(recorded.amount)} paid on {formatDay(recorded.paidOn)}.
+            Recorded {formatRand(recorded.amount)} paid on {formatDay(recorded.paidOn)}.{' '}
+            <Link
+              href={`/admin/payment-history/${recorded.id}`}
+              className="font-semibold underline underline-offset-4"
+            >
+              View statement
+            </Link>
           </p>
         ) : query.undone ? (
           <p role="status" className="text-caption text-success">
@@ -96,7 +102,7 @@ export default async function PersonPayoutsPage({
               <li key={payout.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
                 <span className="flex min-w-0 flex-1 flex-col">
                   <Link
-                    href={`/admin/payouts/payments/${payout.id}`}
+                    href={`/admin/payment-history/${payout.id}`}
                     className="font-medium underline-offset-4 hover:underline"
                   >
                     {formatRand(payout.amount)} on {formatDay(payout.paidOn)}

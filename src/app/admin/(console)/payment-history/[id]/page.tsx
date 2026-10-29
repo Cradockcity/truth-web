@@ -15,7 +15,7 @@ export const metadata = { title: 'Payment statement' }
 // to send to the host or creator.
 export default async function PaymentStatementPage({
   params,
-}: PageProps<'/admin/payouts/payments/[id]'>) {
+}: PageProps<'/admin/payment-history/[id]'>) {
   const { id } = await params
   const payout = isUuid(id) ? await getPayoutStatement(id) : null
   if (!payout) notFound()
@@ -27,10 +27,10 @@ export default async function PaymentStatementPage({
       <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
         <div className="flex flex-col gap-1 text-caption">
           <Link
-            href="/admin/payouts/payments"
+            href="/admin/payment-history"
             className="text-ink/60 hover:text-ink hover:underline"
           >
-            All payments
+            Payment history
           </Link>
           <Link
             href={`/admin/payouts/${payout.recipient}/${payout.personId}`}

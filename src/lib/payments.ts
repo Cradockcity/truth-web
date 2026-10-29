@@ -33,9 +33,24 @@ export async function confirmPayment(reference: string) {
     .single()
 
   if (error) throw new Error(`Failed to confirm payment: ${error.message}`)
+
+  if ((data.outcome === 'paid' || data.outcome === 'already_paid') && transaction.fees != null) {
+    await recordPaystackFee(transaction.reference, transaction.fees, transaction.channel)
+  }
   return {
     outcome: data.outcome as ConfirmOutcome,
     bookingId: data.booking_id as string | null,
     accessToken: data.access_token as string | null,
   }
+}
+
+// Keeps Paystack's fee on the booking for the Revenue report. Saved once; a failure here
+// never undoes a confirmed payment.
+async function recordPaystackFee(reference: string, feeCents: number, channel?: string | null) {
+  const { error } = await createAdminClient()
+    .from('bookings')
+    .update({ paystack_fee: feeCents / 100, payment_channel: channel?.slice(0, 40) ?? null })
+    .eq('payment_reference', reference)
+    .is('paystack_fee', null)
+  if (error) console.error('Saving the Paystack fee failed', error)
 }

@@ -6,6 +6,7 @@ import {
   earningStatus,
   type PayoutFilters,
   PAYOUTS_PER_PAGE,
+  payoutRange,
   type Recipient,
   sumAmounts,
 } from '@/lib/payouts'
@@ -126,36 +127,19 @@ function toPayout(row: PayoutRow): Payout {
 
 const personColumn = (recipient: Recipient) => (recipient === 'host' ? 'host_id' : 'creator_id')
 
-// The overview: everything still owed, recent payouts and this month's total.
+// The Payouts screen: everything still owed (not paid, not cancelled).
 export async function getPayoutsOverview() {
   const { supabase } = await requireAdmin()
   const today = todayInSouthAfrica()
-  const monthStart = `${today.slice(0, 7)}-01`
-
-  const [open, recent, month] = await Promise.all([
-    supabase
-      .from('payout_items')
-      .select(EARNING_COLUMNS)
-      .is('payout_id', null)
-      .is('voided_at', null)
-      .order('due_on')
-      .limit(2000),
-    supabase
-      .from('payouts')
-      .select(PAYOUT_COLUMNS)
-      .order('paid_on', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(20),
-    supabase.from('payouts').select('amount').gte('paid_on', monthStart),
-  ])
-  if (open.error) throw new Error(`Couldn’t load earnings: ${open.error.message}`)
-  if (recent.error) throw new Error(`Couldn’t load payouts: ${recent.error.message}`)
-
-  return {
-    open: (open.data as EarningRow[]).map((row) => toEarning(row, today)),
-    recent: (recent.data as PayoutRow[]).map(toPayout),
-    paidThisMonth: sumAmounts((month.data ?? []).map((row) => ({ amount: Number(row.amount) }))),
-  }
+  const { data, error } = await supabase
+    .from('payout_items')
+    .select(EARNING_COLUMNS)
+    .is('payout_id', null)
+    .is('voided_at', null)
+    .order('due_on')
+    .limit(2000)
+  if (error) throw new Error(`Couldn’t load earnings: ${error.message}`)
+  return { open: (data as EarningRow[]).map((row) => toEarning(row, today)) }
 }
 
 // One host or creator: their name, every earning and every payout.
@@ -214,10 +198,13 @@ type Filterable<T> = {
   lte(column: string, value: string): T
 }
 
-function applyPayoutFilters<T extends Filterable<T>>(request: T, filters: PayoutFilters): T {
-  let query = request
-  if (filters.from) query = query.gte('paid_on', filters.from)
-  if (filters.to) query = query.lte('paid_on', filters.to)
+function applyPayoutFilters<T extends Filterable<T>>(
+  request: T,
+  filters: PayoutFilters,
+  whole: 'month' | 'year' = 'month',
+): T {
+  const [from, to] = payoutRange(whole === 'year' ? { ...filters, month: null } : filters)
+  let query = request.gte('paid_on', from).lte('paid_on', to)
   if (filters.recipient && filters.personId) {
     query = query.eq(personColumn(filters.recipient), filters.personId)
   }
@@ -291,6 +278,26 @@ export async function exportPayouts(filters: PayoutFilters) {
     .limit(5000)
   if (error) throw new Error(`Couldn’t load payments: ${error.message}`)
   return (data as unknown as PayoutWithItems[]).map((row) => toStatement(row, today))
+}
+
+// The year's payments for the report (chart, months, people), and the years that have any.
+export async function getPaymentHistoryReport(filters: PayoutFilters) {
+  const { supabase } = await requireAdmin()
+  const [year, first] = await Promise.all([
+    applyPayoutFilters(supabase.from('payouts').select(PAYOUT_COLUMNS), filters, 'year').limit(
+      5000,
+    ),
+    supabase.from('payouts').select('paid_on').order('paid_on').limit(1).maybeSingle(),
+  ])
+  if (year.error) throw new Error(`Couldn’t load payments: ${year.error.message}`)
+
+  const thisYear = Number(todayInSouthAfrica().slice(0, 4))
+  const firstYear = first.data ? Number(first.data.paid_on.slice(0, 4)) : thisYear
+  const years = Array.from(
+    { length: Math.max(thisYear, filters.year) - Math.min(firstYear, filters.year) + 1 },
+    (_, index) => Math.max(thisYear, filters.year) - index,
+  )
+  return { payouts: (year.data as PayoutRow[]).map(toPayout), years }
 }
 
 // Hosts and creators for the person filter.
