@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-29 (4f payment history and revenue reports done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-29 (end of session: 4f done and pushed, step 5 on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
@@ -17,8 +17,16 @@ Last updated: 2026-10-29 (4f payment history and revenue reports done). The appr
 | 4c Admin: hosts, creators, privacy migration                     | Done, tested                                    | `5525d02`            |
 | 4d Admin: payouts to hosts and creators, creator credit          | Done, tested                                    | `df9a1f6`            |
 | 4e Admin: booking search, payment statements and history, CSV    | Done, tested                                    | `f79ec2d`            |
-| 4f Admin: Payment history and Revenue reports, Paystack fees     | Done, tested                                    | (this commit)        |
-| **5 Hardening and launch**                                       | **Next (see open items below)**                 | —                    |
+| 4f Admin: Payment history and Revenue reports, Paystack fees     | Done, tested                                    | `0cbfecf`            |
+| **5 Hardening and launch**                                       | **On hold (owner's call; see open items)**      | —                    |
+
+## Start here next session
+
+- **All work is committed and pushed** (latest `0cbfecf`, 4f). Nothing is half-built.
+- **Step 5 (launch) is on hold.** The owner postponed it to add the payouts and reports (4d–4f). Ask the owner what they want next; don't start step 5 unasked.
+- **Restart the :3000 dev server before testing payments.** One started by another chat ran old code and didn't save Paystack fees.
+- **Not yet tried by the owner:** printing or saving a statement as PDF (Payment history → View statement → Print).
+- **How the money screens fit together:** Payouts = who's owed now (record a payment there); Payment history = reports and statements of money already sent; Revenue = what Truth made per booking.
 
 ## 4b: experience editor (done)
 
@@ -163,3 +171,5 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
 - Paid test booking `c07a5651…` (2 Nov): later cancelled, with the R178,50 refund pending in Paystack.
 - An expired hold `c44851df…` (31 Oct).
 - Short-lived "Playwright Test" holds created by e2e runs.
+- Paid booking `17f7b6d0…`, paid through the :3000 dev server; its Paystack fee (R4,13) was filled in by the backfill.
+- Old-app paid booking `6319e454…`: earning R126,40 to Michael Brown, paid by the owner as a real test payment (reference 12344). It has no Paystack fee ("Not recorded" on Revenue).
