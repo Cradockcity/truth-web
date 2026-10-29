@@ -1,15 +1,189 @@
 @import 'tailwindcss';
 
-/* Placeholder tokens; the full design system lands in step 1. */
+/* Role colours resolve per scheme; see the :root and .scheme-dark blocks below. */
 @theme inline {
-  --font-sans: var(--font-inter);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-control: var(--control);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --shadow-float: var(--float-shadow);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-saved: var(--saved);
+  --color-danger: var(--danger);
 }
 
+@theme {
+  /* Fixed colours for UI over photographs, identical in both schemes. */
+  --color-night: #0d0f0c;
+  --color-bone: #f1eee6;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  /* Major-third scale from a 16px base. */
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.4;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-lead: 1.25rem;
+  --text-lead--line-height: 1.5;
+  --text-title: 1.5625rem;
+  --text-title--line-height: 1.2;
+  --text-headline: 2.4375rem;
+  --text-headline--line-height: 1.05;
+  --text-display: clamp(2.5rem, 1rem + 6vw, 7.5rem);
+  --text-display--line-height: 0.92;
+
+  --radius-control: 0.75rem;
+  --radius-media: 1.25rem;
+  --radius-sheet: 1.75rem;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-rise: rise 900ms var(--ease-out-quint) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.35em);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/*
+ * Day: white page, softened ink, hairlines and soft lift instead of tinted blocks.
+ * Floating controls (`control` + `shadow-float`) read as raised, not outlined.
+ */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
+  --canvas: #ffffff;
+  --surface: #f7f7f6;
+  --raised: #efefed;
+  --control: #ffffff;
+  --line: #dddddb;
+  --ink: #222222;
+  --float-shadow: 0 0 0 1px rgb(0 0 0 / 0.02), 0 6px 20px rgb(0 0 0 / 0.08);
+  --accent: #6a4bae;
+  --accent-soft: #ebe5f7;
+  --saved: #d63d63;
+  --danger: #b93e2a;
 }
 
-body {
-  background: #0a0a0b;
-  color: rgb(255 255 255 / 0.87);
+/*
+ * Night: bushveld near-black. Applies when the device prefers dark (unless the visitor
+ * chose light), when the visitor chose dark, and always over photographs.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --canvas: #0d0f0c;
+    --surface: #171a15;
+    --raised: #21251e;
+    --control: #21251e;
+    --line: rgb(241 238 230 / 0.12);
+    --float-shadow: none;
+    --ink: #f1eee6;
+    --accent: #a78bdb;
+    --accent-soft: #3a2d55;
+    --saved: #e8577a;
+    --danger: #f0715a;
+  }
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'],
+.scheme-dark {
+  color-scheme: dark;
+  --canvas: #0d0f0c;
+  --surface: #171a15;
+  --raised: #21251e;
+  --control: #21251e;
+  --line: rgb(241 238 230 / 0.12);
+  --float-shadow: none;
+  --ink: #f1eee6;
+  --accent: #a78bdb;
+  --accent-soft: #3a2d55;
+  --saved: #e8577a;
+  --danger: #f0715a;
+  color: var(--ink);
+}
+
+/* Matches whenever the page shows the light scheme, from the device setting or a chosen theme. */
+@custom-variant light {
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme='dark']) & {
+      @slot;
+    }
+  }
+  :root[data-theme='light'] & {
+    @slot;
+  }
+}
+
+/* Archivo's width axis carries the brand voice: expanded and heavy for display type. */
+@utility font-display {
+  font-stretch: 100%;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+
+  /* Expanded widths need room; on phones they would clip single long words. */
+  @media (width >= 40rem) {
+    font-stretch: 125%;
+  }
+}
+
+@utility font-wide {
+  font-stretch: 112%;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Frosted material, reserved for UI that floats over photographs. */
+@utility glass {
+  background-color: rgb(13 15 12 / 0.55);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgb(241 238 230 / 0.14);
+  color: var(--color-bone);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--canvas);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
