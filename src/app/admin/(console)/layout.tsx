@@ -32,7 +32,7 @@ const NAV = [
 export default function AdminLayout({ children }: LayoutProps<'/admin'>) {
   return (
     <div className="flex min-h-dvh flex-1 flex-col lg:flex-row">
-      <aside className="border-b border-line bg-surface lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:border-r lg:border-b-0">
+      <aside className="border-b border-line bg-surface lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:border-r lg:border-b-0 print:hidden">
         <div className="flex items-center justify-between gap-4 px-4 py-4 lg:px-5 lg:py-6">
           <Link href="/admin" className="text-lead font-display tracking-[-0.02em]">
             TRUTH
@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: LayoutProps<'/admin'>) {
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:py-10">
+      <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:py-10 print:p-0">
         <Suspense
           fallback={<div aria-busy className="h-64 animate-pulse rounded-sheet bg-surface" />}
         >

@@ -1,7 +1,14 @@
 import 'server-only'
 
 import { requireAdmin } from '@/lib/admin/guard'
-import { type EarningStatus, earningStatus, type Recipient, sumAmounts } from '@/lib/payouts'
+import {
+  type EarningStatus,
+  earningStatus,
+  type PayoutFilters,
+  PAYOUTS_PER_PAGE,
+  type Recipient,
+  sumAmounts,
+} from '@/lib/payouts'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
 // Admin reads go through the signed-in client: the tables only let admins (is_admin) read.
@@ -198,4 +205,100 @@ export async function getBookingEarnings(bookingId: string) {
     .order('recipient', { ascending: false })
   if (error) throw new Error(`Couldn’t load earnings: ${error.message}`)
   return (data as EarningRow[]).map((row) => toEarning(row, today))
+}
+
+// The payment history: payments matching the filters, newest first, with the filtered total.
+type Filterable<T> = {
+  eq(column: string, value: string): T
+  gte(column: string, value: string): T
+  lte(column: string, value: string): T
+}
+
+function applyPayoutFilters<T extends Filterable<T>>(request: T, filters: PayoutFilters): T {
+  let query = request
+  if (filters.from) query = query.gte('paid_on', filters.from)
+  if (filters.to) query = query.lte('paid_on', filters.to)
+  if (filters.recipient && filters.personId) {
+    query = query.eq(personColumn(filters.recipient), filters.personId)
+  }
+  return query
+}
+
+export async function listPayoutHistory(filters: PayoutFilters) {
+  const { supabase } = await requireAdmin()
+  const start = (filters.page - 1) * PAYOUTS_PER_PAGE
+
+  const [page, amounts] = await Promise.all([
+    applyPayoutFilters(supabase.from('payouts').select(PAYOUT_COLUMNS, { count: 'exact' }), filters)
+      .order('paid_on', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(start, start + PAYOUTS_PER_PAGE - 1),
+    applyPayoutFilters(supabase.from('payouts').select('amount'), filters).limit(10000),
+  ])
+  if (page.error) throw new Error(`Couldn’t load payments: ${page.error.message}`)
+  if (amounts.error) throw new Error(`Couldn’t load payments: ${amounts.error.message}`)
+
+  return {
+    payouts: (page.data as PayoutRow[]).map(toPayout),
+    count: page.count ?? page.data.length,
+    total: sumAmounts(amounts.data.map((row) => ({ amount: Number(row.amount) }))),
+  }
+}
+
+type PayoutWithItems = Omit<PayoutRow, 'payout_items'> & {
+  created_at: string
+  payout_items: EarningRow[]
+}
+
+const STATEMENT_COLUMNS = `
+  id, recipient, host_id, creator_id, recipient_name, amount, paid_on, reference, note, created_at,
+  payout_items ( ${EARNING_COLUMNS} )
+`
+
+function toStatement(row: PayoutWithItems, today: string) {
+  const earnings = row.payout_items
+    .map((item) => toEarning(item, today))
+    .sort((a, b) => (a.sessionDate ?? '').localeCompare(b.sessionDate ?? ''))
+  return {
+    ...toPayout({ ...row, payout_items: [{ count: earnings.length }] }),
+    createdAt: row.created_at,
+    earnings,
+  }
+}
+
+// One payment and the bookings it covered: the statement.
+export async function getPayoutStatement(id: string) {
+  const { supabase } = await requireAdmin()
+  const { data, error } = await supabase
+    .from('payouts')
+    .select(STATEMENT_COLUMNS)
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw new Error(`Couldn’t load the payment: ${error.message}`)
+  return data ? toStatement(data as unknown as PayoutWithItems, todayInSouthAfrica()) : null
+}
+
+// Every payment matching the filters with its bookings, for the CSV download.
+export async function exportPayouts(filters: PayoutFilters) {
+  const { supabase } = await requireAdmin()
+  const today = todayInSouthAfrica()
+  const { data, error } = await applyPayoutFilters(
+    supabase.from('payouts').select(STATEMENT_COLUMNS),
+    filters,
+  )
+    .order('paid_on', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(5000)
+  if (error) throw new Error(`Couldn’t load payments: ${error.message}`)
+  return (data as unknown as PayoutWithItems[]).map((row) => toStatement(row, today))
+}
+
+// Hosts and creators for the person filter.
+export async function listPeopleOptions() {
+  const { supabase } = await requireAdmin()
+  const [hosts, creators] = await Promise.all([
+    supabase.from('hosts').select('id, name').order('name'),
+    supabase.from('creators').select('id, name').order('name'),
+  ])
+  return { hosts: hosts.data ?? [], creators: creators.data ?? [] }
 }

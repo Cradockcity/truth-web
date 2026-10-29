@@ -77,7 +77,16 @@ export default async function AdminPayoutsPage() {
         )}
       </Section>
 
-      <Section title="Recent payments" description="The last 20 payments recorded.">
+      <Section
+        title="Recent payments"
+        description="The last 20 payments recorded. Open one for its statement."
+      >
+        <Link
+          href="/admin/payouts/payments"
+          className="-mt-2 self-start text-caption font-semibold underline-offset-4 hover:underline"
+        >
+          All payments, by month or person
+        </Link>
         {recent.length === 0 ? (
           <Empty>No payments recorded yet.</Empty>
         ) : (
@@ -85,7 +94,7 @@ export default async function AdminPayoutsPage() {
             {recent.map((payout) => (
               <li key={payout.id}>
                 <Link
-                  href={`/admin/payouts/${payout.recipient}/${payout.personId}`}
+                  href={`/admin/payouts/payments/${payout.id}`}
                   className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-surface"
                 >
                   <span className="w-28 shrink-0 text-caption text-ink/60">

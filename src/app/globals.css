@@ -120,6 +120,24 @@
   color: var(--ink);
 }
 
+/* Paper is white: printed pages (payment statements) always use the day colours. */
+@media print {
+  :root:root:root {
+    color-scheme: light;
+    --canvas: #ffffff;
+    --surface: #ffffff;
+    --raised: #efefed;
+    --control: #ffffff;
+    --line: #dddddb;
+    --ink: #222222;
+    --accent: #6a4bae;
+    --accent-soft: #ebe5f7;
+    --saved: #d63d63;
+    --danger: #b93e2a;
+    --success: #2f7d55;
+  }
+}
+
 /* Matches whenever the page shows the light scheme, from the device setting or a chosen theme. */
 @custom-variant light {
   @media (prefers-color-scheme: light) {

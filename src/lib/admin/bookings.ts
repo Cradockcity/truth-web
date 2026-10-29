@@ -1,6 +1,12 @@
 import 'server-only'
 
 import { requireAdmin } from '@/lib/admin/guard'
+import {
+  BOOKINGS_PER_PAGE,
+  type BookingFilters,
+  bookingCodeRange,
+  bookingTotals,
+} from '@/lib/booking-filters'
 import { getRefundState } from '@/lib/paystack'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
@@ -28,13 +34,16 @@ export type AdminBooking = {
   refundAmount: number | null
   refundStatus: string | null
   refundedAt: string | null
+  hostName: string | null
+  creatorName: string | null
 }
 
 const COLUMNS = `
   id, access_token, status, booking_date, start_time, selected_date, selected_time, guest_count,
   subtotal, service_fee, total_amount, customer_name, customer_email, customer_phone,
   payment_reference, created_at, expires_at, paid_at, cancelled_at, cancellation_reason,
-  refund_amount, refund_status, refunded_at, experience_snapshot
+  refund_amount, refund_status, refunded_at, experience_snapshot,
+  hosts ( name ), creators ( name )
 ` as const
 
 type Row = {
@@ -62,6 +71,8 @@ type Row = {
   refund_status: string | null
   refunded_at: string | null
   experience_snapshot: { title?: string; location?: string } | null
+  hosts: { name: string } | null
+  creators: { name: string } | null
 }
 
 function toBooking(row: Row): AdminBooking {
@@ -92,38 +103,114 @@ function toBooking(row: Row): AdminBooking {
     refundAmount: row.refund_amount === null ? null : Number(row.refund_amount),
     refundStatus: row.refund_status,
     refundedAt: row.refunded_at,
+    hostName: row.hosts?.name ?? null,
+    creatorName: row.creators?.name ?? null,
   }
 }
 
-export const BOOKING_FILTERS = ['all', 'paid', 'pending', 'cancelled'] as const
-export type BookingFilter = (typeof BOOKING_FILTERS)[number]
+// The two filter methods used below; every Supabase query builder has them.
+type Filterable<T> = {
+  eq(column: string, value: string): T
+  or(filters: string): T
+}
 
-export async function listBookings(options: {
-  status: BookingFilter
-  when: 'upcoming' | 'past' | 'all'
-  query: string | null
-}) {
-  const { supabase } = await requireAdmin()
+// PostgREST filter syntax uses these characters; take them out of anything typed.
+const clean = (value: string) => value.replace(/[%_,().*\\:]/g, ' ').trim()
+
+// Applies the search and filters. Bookings made by the old app have only selected_date,
+// so date limits check it when booking_date is empty.
+function applyFilters<T extends Filterable<T>>(request: T, filters: BookingFilters): T {
+  let query = request
+  if (filters.status !== 'all') query = query.eq('status', filters.status)
+  if (filters.experienceId) query = query.eq('experience_id', filters.experienceId)
+  if (filters.hostId) query = query.eq('host_id', filters.hostId)
+  if (filters.creatorId) query = query.eq('creator_id', filters.creatorId)
+
+  const groups: string[] = []
+
   const today = todayInSouthAfrica()
-
-  let request = supabase.from('bookings').select(COLUMNS)
-  if (options.status !== 'all') request = request.eq('status', options.status)
-  if (options.when === 'upcoming') request = request.gte('booking_date', today)
-  if (options.when === 'past') request = request.lt('booking_date', today)
-  if (options.query) {
-    // Escape PostgREST's filter syntax characters before building an ilike pattern.
-    const term = options.query.replace(/[%_,().*\\]/g, ' ').trim()
-    if (term) request = request.or(`customer_name.ilike.%${term}%,customer_email.ilike.%${term}%`)
+  const limits: string[] = []
+  if (filters.when === 'upcoming') limits.push(`gte.${today}`)
+  if (filters.when === 'past') limits.push(`lt.${today}`)
+  if (filters.from) limits.push(`gte.${filters.from}`)
+  if (filters.to) limits.push(`lte.${filters.to}`)
+  if (limits.length > 0) {
+    const on = (column: string) => limits.map((limit) => `${column}.${limit}`).join(',')
+    groups.push(`and(${on('booking_date')}),and(booking_date.is.null,${on('selected_date')})`)
   }
 
-  const { data, error } = await request
-    .order('booking_date', { ascending: options.when !== 'past', nullsFirst: false })
+  if (filters.q) {
+    const term = clean(filters.q)
+    const options = term
+      ? ['customer_name', 'customer_email', 'customer_phone', 'payment_reference'].map(
+          (column) => `${column}.ilike.*${term}*`,
+        )
+      : []
+    const code = bookingCodeRange(filters.q)
+    if (code) options.push(`and(id.gte.${code[0]},id.lte.${code[1]})`)
+    if (options.length > 0) groups.push(options.join(','))
+  }
+
+  // Each group is "any of these"; all groups must match.
+  if (groups.length === 1) query = query.or(groups[0]!)
+  if (groups.length === 2) query = query.or(`and(or(${groups[0]}),or(${groups[1]}))`)
+  return query as T
+}
+
+export async function listBookings(filters: BookingFilters) {
+  const { supabase } = await requireAdmin()
+  const start = (filters.page - 1) * BOOKINGS_PER_PAGE
+
+  const { data, error, count } = await applyFilters(
+    supabase.from('bookings').select(COLUMNS, { count: 'exact' }),
+    filters,
+  )
+    .order('booking_date', { ascending: filters.when === 'upcoming', nullsFirst: false })
     .order('start_time', { ascending: true })
-    .limit(200)
+    .range(start, start + BOOKINGS_PER_PAGE - 1)
     .returns<Row[]>()
 
   if (error) throw new Error(`Failed to load bookings: ${error.message}`)
+  return { bookings: data.map(toBooking), count: count ?? data.length }
+}
+
+export async function getBookingTotals(filters: BookingFilters) {
+  const { supabase } = await requireAdmin()
+  const { data, error } = await applyFilters(
+    supabase
+      .from('bookings')
+      .select('status, paid_at, guest_count, total_amount, refund_amount, refund_status'),
+    { ...filters, page: 1 },
+  ).limit(10000)
+  if (error) throw new Error(`Failed to load totals: ${error.message}`)
+  return bookingTotals(data)
+}
+
+// Every booking matching the filters, for the CSV download.
+export async function exportBookings(filters: BookingFilters) {
+  const { supabase } = await requireAdmin()
+  const { data, error } = await applyFilters(supabase.from('bookings').select(COLUMNS), filters)
+    .order('booking_date', { ascending: true, nullsFirst: false })
+    .order('start_time', { ascending: true })
+    .limit(10000)
+    .returns<Row[]>()
+  if (error) throw new Error(`Failed to load bookings: ${error.message}`)
   return data.map(toBooking)
+}
+
+// Names for the filter dropdowns.
+export async function getBookingFilterOptions() {
+  const { supabase } = await requireAdmin()
+  const [experiences, hosts, creators] = await Promise.all([
+    supabase.from('experiences').select('id, title').order('title'),
+    supabase.from('hosts').select('id, name').order('name'),
+    supabase.from('creators').select('id, name').order('name'),
+  ])
+  return {
+    experiences: (experiences.data ?? []).map((e) => ({ id: e.id, name: e.title })),
+    hosts: hosts.data ?? [],
+    creators: creators.data ?? [],
+  }
 }
 
 // Pull the refund's real status from Paystack, so it updates even without webhooks (e.g. local dev).

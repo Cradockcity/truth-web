@@ -1,3 +1,5 @@
+import { monthRange } from '@/lib/booking-filters'
+
 // Payouts: what Truth owes hosts and creators (earnings) and what it has sent (payouts).
 // The amounts are worked out in the database when a booking is paid (record_booking_earnings).
 
@@ -88,4 +90,49 @@ const dayFormat = new Intl.DateTimeFormat('en-GB', {
 // "12 Mar 2026". Dates are calendar days, so format them as UTC midnight.
 export function formatDay(date: string) {
   return dayFormat.format(new Date(`${date}T00:00:00Z`))
+}
+
+// The payment history's filters, read from the URL like the bookings search.
+export const PAYOUTS_PER_PAGE = 50
+
+export type PayoutFilters = {
+  from: string | null
+  to: string | null
+  recipient: Recipient | null
+  personId: string | null
+  page: number
+}
+
+type Params = Record<string, string | string[] | undefined>
+const one = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)
+const isDay = (value: string | undefined): value is string =>
+  !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value))
+
+// "person" is "host:<id>" or "creator:<id>", so one dropdown covers both.
+export function parsePayoutFilters(params: Params): PayoutFilters {
+  const month = monthRange(one(params.month) ?? '')
+  const from = one(params.from)
+  const to = one(params.to)
+  const person = /^(host|creator):([0-9a-f-]{36})$/i.exec(one(params.person) ?? '')
+  const page = Number(one(params.page))
+  return {
+    from: isDay(from) ? from : (month?.[0] ?? null),
+    to: isDay(to) ? to : (month?.[1] ?? null),
+    recipient: person ? (person[1]!.toLowerCase() as Recipient) : null,
+    personId: person ? person[2]!.toLowerCase() : null,
+    page: Number.isInteger(page) && page > 1 && page <= 1000 ? page : 1,
+  }
+}
+
+export function payoutFiltersToParams(
+  filters: PayoutFilters,
+  changes: Partial<PayoutFilters> = {},
+) {
+  const next = { ...filters, ...changes }
+  const params = new URLSearchParams()
+  if (next.from) params.set('from', next.from)
+  if (next.to) params.set('to', next.to)
+  if (next.recipient && next.personId) params.set('person', `${next.recipient}:${next.personId}`)
+  if (next.page > 1) params.set('page', String(next.page))
+  return params
 }

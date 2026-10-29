@@ -95,9 +95,12 @@ export default async function PersonPayoutsPage({
             {person.payouts.map((payout) => (
               <li key={payout.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="font-medium">
+                  <Link
+                    href={`/admin/payouts/payments/${payout.id}`}
+                    className="font-medium underline-offset-4 hover:underline"
+                  >
                     {formatRand(payout.amount)} on {formatDay(payout.paidOn)}
-                  </span>
+                  </Link>
                   <span className="text-caption text-ink/60">
                     {payout.bookingCount === 1 ? '1 booking' : `${payout.bookingCount} bookings`}
                     {payout.reference ? ` · ref ${payout.reference}` : ''}

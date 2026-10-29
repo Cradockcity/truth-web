@@ -1,8 +1,8 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-29 (4d payouts done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-29 (4e booking search and payout reports done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
-**Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts) → 5 hardening and launch (postponed by the owner until after 4d).
+**Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e reports) → 5 hardening and launch (postponed by the owner).
 
 ## Status
 
@@ -15,7 +15,8 @@ Last updated: 2026-10-29 (4d payouts done). The approved plan and the original a
 | 4a Admin: MFA sign-in, dashboard, bookings, cancel/refund        | Done, tested by owner                           | `50b027a`            |
 | 4b Admin: experience editor                                      | Done, tested by owner                           | `c8a63a2`            |
 | 4c Admin: hosts, creators, privacy migration                     | Done, tested                                    | `5525d02`            |
-| 4d Admin: payouts to hosts and creators, creator credit          | Done, tested                                    | (this commit)        |
+| 4d Admin: payouts to hosts and creators, creator credit          | Done, tested                                    | `df9a1f6`            |
+| 4e Admin: booking search, payment statements and history, CSV    | Done, tested                                    | (this commit)        |
 | **5 Hardening and launch**                                       | **Next (see open items below)**                 | —                    |
 
 ## 4b: experience editor (done)
@@ -71,6 +72,26 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
   - the public creator → Reserve → book form carries `creator`.
   - Test data was removed afterwards. E2E covers the signed-out lockout.
 - **Later:** bank details (owner paused), automatic payouts via the Paystack Transfers API (~R3 per transfer, needs bank details), CSV export, emailed statements.
+
+## 4e: booking search and payout reports (done)
+
+Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`. No database change.
+
+- **Bookings** (`/admin/bookings`):
+  - search by name, email, phone, Paystack reference or the 8-character booking code (an id range, no migration);
+  - filters for experience, host, creator, Month or From/To; status and Upcoming/Past/Any date chips;
+  - totals (bookings, paid, guests, money taken less refunds, refunds), 50 per page, **Download CSV** (`bookings/export/route.ts`).
+  - Filters live in the URL (`src/lib/booking-filters.ts` + test). Date limits also match old-app rows through `selected_date`.
+  - The table shows the year, the booking code, the host and the creator.
+- **Payment statement** (`/admin/payouts/payments/[id]`): the bookings one payment covered, with total, reference and a **Print or save as PDF** button. The admin note is shown on screen only. Print styles: day colours forced in `globals.css`, admin menu `print:hidden`.
+- **Payment history** (`/admin/payouts/payments`): filter by month or From/To and by person, totals, paging, and a CSV with one line per booking paid (`payouts/payments/export/route.ts`).
+- CSV helper `src/lib/csv.ts` (+ test): UTF-8 BOM for Excel, quoting, and a formula-injection guard.
+- **Tested** (owner signed in, Claude drove the browser):
+  - every search and filter, including the March 2026 old-app booking under March and Past;
+  - both CSVs (BOM, columns, values);
+  - one R246,40 payment covering two of Michael's bookings, its statement, and the history filters.
+  - Test data was removed afterwards. E2E covers the signed-out lockout of the new pages and both downloads.
+  - The print preview itself wasn't seen (the browser panel can't show it); the print rules were checked in the page's styles.
 
 ## Open items before launch (step 5)
 

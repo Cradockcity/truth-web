@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest'
 
-import { earningStatus, formatDay, groupOwed, sumAmounts } from './payouts'
+import {
+  earningStatus,
+  formatDay,
+  groupOwed,
+  parsePayoutFilters,
+  payoutFiltersToParams,
+  sumAmounts,
+} from './payouts'
 
 test('earnings are due from their due date, and paid or cancelled ones stay that way', () => {
   const open = { payoutId: null, voidedAt: null, dueOn: '2026-11-03' }
@@ -62,4 +69,30 @@ test('open earnings are grouped per person, most owed first', () => {
 
 test('days show with the year', () => {
   expect(formatDay('2026-03-12')).toBe('12 Mar 2026')
+})
+
+test('payment history filters read a month and one person', () => {
+  expect(
+    parsePayoutFilters({ month: '2026-10', person: 'host:a2000000-0000-0000-0000-000000000002' }),
+  ).toEqual({
+    from: '2026-10-01',
+    to: '2026-10-31',
+    recipient: 'host',
+    personId: 'a2000000-0000-0000-0000-000000000002',
+    page: 1,
+  })
+  expect(parsePayoutFilters({ person: 'boss:1', from: 'soon', page: '0' })).toEqual({
+    from: null,
+    to: null,
+    recipient: null,
+    personId: null,
+    page: 1,
+  })
+  const filters = parsePayoutFilters({
+    from: '2026-10-01',
+    person: 'creator:b2000000-0000-0000-0000-000000000002',
+  })
+  expect(payoutFiltersToParams(filters, { page: 2 }).toString()).toBe(
+    'from=2026-10-01&person=creator%3Ab2000000-0000-0000-0000-000000000002&page=2',
+  )
 })

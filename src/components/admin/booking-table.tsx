@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import type { AdminBooking } from '@/lib/admin/bookings'
+import { bookingCode } from '@/lib/booking-filters'
 import { formatRand } from '@/lib/format'
 import { formatSessionDate } from '@/lib/sessions'
 
@@ -51,12 +52,22 @@ export function BookingTable({ bookings }: { bookings: AdminBooking[] }) {
                   href={`/admin/bookings/${booking.id}`}
                   className="font-medium after:absolute after:inset-0"
                 >
-                  {booking.date ? formatSessionDate(booking.date, 'short') : 'No date'}
+                  {booking.date
+                    ? `${formatSessionDate(booking.date, 'short')} ${booking.date.slice(0, 4)}`
+                    : 'No date'}
                 </Link>
                 {booking.time ? <span className="text-ink/60"> · {booking.time}</span> : null}
+                <span className="block font-mono text-ink/50">{bookingCode(booking.id)}</span>
               </td>
               <td className="col-span-2 text-ink/80 md:col-span-1 md:px-4 md:py-3">
                 {booking.title}
+                {booking.hostName || booking.creatorName ? (
+                  <span className="block text-ink/50">
+                    {[booking.hostName, booking.creatorName ? `via ${booking.creatorName}` : null]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                ) : null}
               </td>
               <td className="text-ink/80 md:px-4 md:py-3">
                 {booking.customerName ?? '—'}
