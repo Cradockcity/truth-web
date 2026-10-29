@@ -1,0 +1,197 @@
+'use client'
+
+import { ArrowLeft, ArrowRight, ImagePlus, Trash2 } from 'lucide-react'
+import Image from 'next/image'
+import { useRef, useState, useTransition } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { type FormState, savePhotos } from '@/lib/actions/admin-experiences'
+import { cn } from '@/lib/cn'
+import { createClient } from '@/lib/supabase/client'
+
+import { SaveStatus } from './save-status'
+
+// Matches the "images" storage bucket's rules.
+const TYPES: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
+const MAX_BYTES = 2 * 1024 * 1024
+const MAX_PHOTOS = 12
+
+export function PhotoManager({
+  experienceId,
+  initial,
+}: {
+  experienceId: string
+  initial: string[]
+}) {
+  const [urls, setUrls] = useState(initial)
+  const [state, setState] = useState<FormState>({})
+  const [uploading, setUploading] = useState(0)
+  const [saving, startSaving] = useTransition()
+  const input = useRef<HTMLInputElement>(null)
+  const dirty = urls.join('|') !== initial.join('|')
+
+  async function upload(files: FileList | null) {
+    if (!files?.length) return
+    const room = MAX_PHOTOS - urls.length
+    const chosen = [...files].slice(0, room)
+    const problems: string[] = []
+    const supabase = createClient()
+    setUploading(chosen.length)
+    setState({})
+
+    for (const file of chosen) {
+      const extension = TYPES[file.type]
+      if (!extension) {
+        problems.push(`${file.name}: use JPG, PNG or WebP.`)
+      } else if (file.size > MAX_BYTES) {
+        problems.push(`${file.name}: larger than 2 MB. Export a smaller version.`)
+      } else {
+        const path = `experiences/${crypto.randomUUID()}.${extension}`
+        const { error } = await supabase.storage
+          .from('images')
+          .upload(path, file, { contentType: file.type, cacheControl: '31536000' })
+        if (error) problems.push(`${file.name}: ${error.message}`)
+        else {
+          const { data } = supabase.storage.from('images').getPublicUrl(path)
+          setUrls((current) => [...current, data.publicUrl])
+        }
+      }
+      setUploading((count) => count - 1)
+    }
+
+    if (files.length > room) problems.push(`Only ${MAX_PHOTOS} photos fit; the rest were skipped.`)
+    if (problems.length) setState({ error: problems.join(' ') })
+    if (input.current) input.current.value = ''
+  }
+
+  function remove(url: string) {
+    setUrls((current) => current.filter((item) => item !== url))
+    // Uploaded in this visit but never saved: nothing else points at it, so delete it now.
+    // Saved photos are only deleted from storage when the change is saved.
+    if (!initial.includes(url)) {
+      const path = url.split('/storage/v1/object/public/images/')[1]
+      if (path) void createClient().storage.from('images').remove([path])
+    }
+  }
+
+  function move(index: number, by: -1 | 1) {
+    setUrls((current) => {
+      const next = [...current]
+      const [item] = next.splice(index, 1)
+      if (item) next.splice(index + by, 0, item)
+      return next
+    })
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {urls.map((url, index) => (
+          <li key={url} className="flex flex-col gap-2">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-control bg-surface">
+              <Image src={url} alt="" fill sizes="16rem" className="object-cover" />
+              {index === 0 ? (
+                <span className="absolute top-2 left-2 rounded-full glass px-2.5 py-0.5 text-caption">
+                  Cover
+                </span>
+              ) : null}
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex gap-1">
+                <IconButton
+                  label="Move earlier"
+                  disabled={index === 0}
+                  onClick={() => move(index, -1)}
+                >
+                  <ArrowLeft />
+                </IconButton>
+                <IconButton
+                  label="Move later"
+                  disabled={index === urls.length - 1}
+                  onClick={() => move(index, 1)}
+                >
+                  <ArrowRight />
+                </IconButton>
+              </div>
+              <IconButton label="Remove photo" onClick={() => remove(url)}>
+                <Trash2 />
+              </IconButton>
+            </div>
+          </li>
+        ))}
+        {urls.length < MAX_PHOTOS ? (
+          <li>
+            <label
+              className={cn(
+                'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-control border border-dashed border-ink/25 text-caption text-ink/60 transition-colors hover:border-ink/50 hover:text-ink',
+                uploading > 0 && 'pointer-events-none animate-pulse',
+              )}
+            >
+              <ImagePlus className="size-6" aria-hidden />
+              {uploading > 0 ? `Uploading ${uploading}…` : 'Add photos'}
+              <input
+                ref={input}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="sr-only"
+                onChange={(event) => upload(event.target.files)}
+              />
+            </label>
+          </li>
+        ) : null}
+      </ul>
+
+      <p className="text-caption text-ink/55">
+        The first photo is the cover. JPG, PNG or WebP, up to 2 MB each, at most {MAX_PHOTOS}.
+      </p>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <Button
+          disabled={!dirty || saving || uploading > 0}
+          onClick={() =>
+            startSaving(async () => {
+              const result = await savePhotos({ id: experienceId, urls })
+              setState(result)
+            })
+          }
+        >
+          {saving ? 'Saving…' : 'Save photos'}
+        </Button>
+        {dirty && !saving ? (
+          <span className="text-caption text-ink/55">Unsaved changes</span>
+        ) : null}
+        <SaveStatus state={state} />
+      </div>
+    </div>
+  )
+}
+
+function IconButton({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="grid size-8 cursor-pointer place-items-center rounded-full text-ink/70 transition-colors hover:bg-ink/8 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 [&_svg]:size-4"
+    >
+      {children}
+    </button>
+  )
+}

@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-30. The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-29. The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c) → 5 hardening and launch.
 
@@ -13,38 +13,21 @@ Last updated: 2026-10-30. The approved plan and the original audit are in `C:\Us
 | 2 Public browsing (search/filters, detail, creators, saved, SEO) | Done                                            | `f3ba35e`            |
 | 3 Booking, Paystack (test), customer sign-in, My bookings        | Done, except Google sign-in (needs owner setup) | `d1d0e09`, `c1a9daf` |
 | 4a Admin: MFA sign-in, dashboard, bookings, cancel/refund        | Done, tested by owner                           | `50b027a`            |
-| **4b Admin: experience editor**                                  | **In progress, uncommitted (see below)**        | —                    |
-| 4c Admin: hosts, creators, privacy migration                     | Not started                                     | —                    |
+| 4b Admin: experience editor                                      | Done, tested by owner                           | (this commit)        |
+| **4c Admin: hosts, creators, privacy migration**                 | **Next (see plan below)**                       | —                    |
 | 5 Hardening and launch                                           | Not started                                     | —                    |
 
-## 4b: where it stands (resume here)
+## 4b: experience editor (done)
 
-The code is written but **not yet type-checked, tested or committed**. Run `git status` to see it:
-
-- **Migration:** `supabase/migrations/20261030100000_admin_experience_editing.sql`, with `admin_replace_itinerary` and `admin_replace_schedule`. **The owner has NOT run it yet.**
-- **Data and actions:** `src/lib/admin/experiences.ts`, `src/lib/actions/admin-experiences.ts`, `src/lib/schedule.ts` (+ test).
-- **UI:** `src/components/admin/{experience-details-form, photo-manager, itinerary-editor, schedule-editor, blackout-editor, save-status}.tsx`, and `Textarea` added to `src/components/ui/input.tsx`.
-- **Pages:** `src/app/admin/(console)/experiences/{page, new/page, [id]/page}.tsx`.
-
-**Next steps:**
-
-1. Ask the owner to run the 4b migration in the SQL editor. Expected check: `anon_can_edit = false`.
-2. `pnpm db:types`, then `pnpm check`. Fix type errors; the RPC names only exist after the migration.
-3. Test in the browser with the owner signed in as admin (password + TOTP):
-   - edit details and toggle live/hidden;
-   - upload, reorder and remove photos (storage bucket `images`, admin-only uploads);
-   - itinerary; weekly schedule; block a date;
-   - check the public page updates.
-4. Add e2e coverage where possible (admin pages need the owner's login, so test the lockout and pure functions). Then commit and push when the owner asks.
-
-**4b design notes:**
-
-- Each section saves separately.
-- Itinerary and schedule saves are replace-all in one DB transaction (RPCs check `is_admin()`).
+- Migration `20261030100000_admin_experience_editing.sql` (run by the owner): `admin_replace_itinerary` and `admin_replace_schedule`, replace-all in one transaction, `is_admin()` checked, not executable by `anon`.
+- Pages `src/app/admin/(console)/experiences/{page, new/page, [id]/page}.tsx`; data `src/lib/admin/experiences.ts`; actions `src/lib/actions/admin-experiences.ts`; schedule grouping `src/lib/schedule.ts` (+ test); components in `src/components/admin/`.
+- Each section saves separately. Every save calls `updateTag` for the public pages, then `refresh()` for the admin page.
 - New experiences start hidden. They can't go live without a photo, and removing all photos hides them.
-- Photo uploads go straight from the browser to Supabase Storage. JPG/PNG/WebP up to 2 MB, at most 12 photos; the first is the cover. Removed storage files are deleted on save.
+- Photos upload from the browser straight to Storage (bucket `images`, admin-only policies): JPG/PNG/WebP, up to 2 MB, at most 12; the first is the cover. Removed files are deleted on save; uploads removed before saving are deleted at once.
+- The details form submits via `onSubmit` + `startTransition`, so a failed save doesn't reset the admin's edits (React resets forms that use `action`).
+- Tested by the owner: details and live/hidden, photos, itinerary, schedule, blocked dates, public page refresh. E2E covers the signed-out lockout of the new pages.
 
-## 4c: plan
+## 4c: plan (resume here)
 
 - Hosts CRUD and creators CRUD, including choosing which experiences a creator recommends (`creator_experience_referrals`).
 - **Privacy migration (owner approved):** revoke column `SELECT` on `hosts.email` and `hosts/creators.revenue_share_percentage` from `anon` and `authenticated` (grant other columns explicitly). The admin then reads those columns with the service-role client after `requireAdmin()`. Public `src/lib/data/*` already avoids those columns. The old app's experience pages will break; this is accepted.
@@ -61,7 +44,8 @@ The code is written but **not yet type-checked, tested or committed**. Run `git 
   - Register the Paystack webhook URL `/payments/paystack/webhook`.
   - Switch to the Paystack live key once the business is verified.
 - **Vercel:** deploy in region `dub1` (Supabase is in eu-west-1). Add GitHub Actions secrets (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) so CI e2e passes.
-- **Content:** several experience photos don't match their listing (the "kayaking" one shows a motorcycle). Replace them via the new admin photo manager.
+- **Content:** several experience photos don't match their listing (the "kayaking" one shows a motorcycle). Replace them via the admin photo manager.
+- **Dev warning:** `next dev` logs "encountered the unstable value `Date.now()` while prerendering" on signed-in pages (`/admin/*`, `/account/bookings`). It predates 4b, the log gives no stack, and `pnpm build` passes. Find the source (likely Supabase auth or a shared client component) before launch.
 - **Nice to have:**
   - the header search pill doesn't show the current search;
   - Google ratings caching;
