@@ -3,6 +3,7 @@ import { Archivo } from 'next/font/google'
 
 import { SiteFooter } from '@/components/site/footer'
 import { InlineScript } from '@/components/site/inline-script'
+import { publicEnv } from '@/lib/env'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 
 import './globals.css'
@@ -13,13 +14,26 @@ const archivo = Archivo({
   axes: ['wdth'],
 })
 
+const DESCRIPTION =
+  'Discover unique activities hosted by local experts, from cultural tours to adventure experiences across South Africa.'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(publicEnv.NEXT_PUBLIC_SITE_URL),
   title: {
     default: 'Truth — Unforgettable experiences in South Africa',
     template: '%s · Truth',
   },
-  description:
-    'Discover unique activities hosted by local experts, from cultural tours to adventure experiences across South Africa.',
+  description: DESCRIPTION,
+  openGraph: {
+    siteName: 'Truth',
+    locale: 'en_ZA',
+    type: 'website',
+    description: DESCRIPTION,
+    images: [
+      'https://images.pexels.com/photos/259447/pexels-photo-259447.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    ],
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export const viewport: Viewport = {

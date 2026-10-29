@@ -1,11 +1,15 @@
-import { Menu, Search } from 'lucide-react'
 import Link from 'next/link'
 
-import { buttonVariants } from '@/components/ui/button'
+import { SearchPill } from '@/components/search/search-pill'
 import { cn } from '@/lib/cn'
+import { getFilterOptions } from '@/lib/data/experiences'
+
+import { MenuButton } from './menu-button'
 
 // `overlay` floats the header over a hero photo, so it always uses the dark scheme.
-export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
+export async function SiteHeader({ overlay = false }: { overlay?: boolean }) {
+  const options = await getFilterOptions()
+
   return (
     <header
       className={cn(
@@ -20,50 +24,10 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
           TRUTH
         </Link>
 
-        <SearchPill overlay={overlay} className="mx-auto" />
+        <SearchPill options={options} overlay={overlay} className="mx-auto" />
 
-        <Link
-          href="/menu"
-          aria-label="Open menu"
-          className={cn(
-            buttonVariants({ variant: overlay ? 'glass' : 'secondary', size: 'icon' }),
-            'ml-auto sm:ml-0',
-          )}
-        >
-          <Menu />
-        </Link>
+        <MenuButton overlay={overlay} className="ml-auto sm:ml-0" />
       </div>
     </header>
   )
-}
-
-function SearchPill({ overlay, className }: { overlay: boolean; className?: string }) {
-  return (
-    <Link
-      href="/experiences"
-      className={cn(
-        'group flex h-12 min-w-0 items-center rounded-full pr-1.5 pl-5 text-caption text-ink transition-colors duration-200',
-        overlay
-          ? 'glass hover:bg-night/70'
-          : 'border border-line bg-control shadow-float hover:border-ink/25',
-        className,
-      )}
-    >
-      <span className="font-semibold">Anywhere</span>
-      <span className="hidden items-center sm:flex">
-        <Divider />
-        <span className="font-semibold">Any date</span>
-        <Divider />
-        <span className="text-ink/65">Add guests</span>
-      </span>
-      <span className="ml-3 grid size-9 place-items-center rounded-full bg-ink text-canvas transition-transform duration-200 ease-out-quint group-hover:scale-105">
-        <Search className="size-4" strokeWidth={2.5} aria-hidden />
-      </span>
-      <span className="sr-only">Search experiences</span>
-    </Link>
-  )
-}
-
-function Divider() {
-  return <span aria-hidden className="mx-4 h-5 w-px bg-ink/20" />
 }

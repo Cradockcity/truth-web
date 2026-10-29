@@ -146,6 +146,15 @@
   letter-spacing: -0.02em;
 }
 
+/* Swipeable rows (chips, photo strips) scroll without showing a bar. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Frosted material, reserved for UI that floats over photographs. */
 @utility glass {
   background-color: rgb(13 15 12 / 0.55);

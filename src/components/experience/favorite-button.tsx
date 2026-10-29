@@ -1,19 +1,27 @@
 'use client'
 
 import { Heart } from 'lucide-react'
-import { useState } from 'react'
 
 import { cn } from '@/lib/cn'
+import { toggleSaved, useIsSaved } from '@/lib/saved'
 
-export function FavoriteButton({ title, className }: { title: string; className?: string }) {
-  const [saved, setSaved] = useState(false)
+export function FavoriteButton({
+  id,
+  title,
+  className,
+}: {
+  id: string
+  title: string
+  className?: string
+}) {
+  const saved = useIsSaved(id)
 
   return (
     <button
       type="button"
       aria-pressed={saved}
       aria-label={saved ? `Remove ${title} from saved` : `Save ${title}`}
-      onClick={() => setSaved((value) => !value)}
+      onClick={() => toggleSaved(id)}
       className={cn(
         'grid size-10 cursor-pointer place-items-center rounded-full glass transition-transform duration-200 ease-out-quint active:scale-90',
         className,

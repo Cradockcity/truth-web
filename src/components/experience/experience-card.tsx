@@ -46,7 +46,7 @@ export function ExperienceCard({
         <Chip tone="glass" className="absolute top-3 left-3">
           {category}
         </Chip>
-        <FavoriteButton title={title} className="absolute top-3 right-3 z-10" />
+        <FavoriteButton id={id} title={title} className="absolute top-3 right-3 z-10" />
       </div>
 
       <div className="flex flex-col gap-1 px-0.5">
