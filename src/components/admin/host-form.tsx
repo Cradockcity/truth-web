@@ -56,9 +56,9 @@ export function HostForm({ host }: { host: EditableHost | null }) {
           <Input id="joinedDate" name="joinedDate" type="date" defaultValue={h?.joinedDate} />
         </Field>
         <Field
-          label="Revenue share (%)"
+          label="Truth's commission (%)"
           htmlFor="revenueShare"
-          hint="The host's share of each booking. Only admins see this."
+          hint="Truth keeps this part of the experience price; the host is paid the rest. Only admins see this."
         >
           <Input
             id="revenueShare"

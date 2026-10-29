@@ -8,6 +8,7 @@ import { Sheet } from '@/components/ui/sheet'
 import { Stepper } from '@/components/ui/stepper'
 import { loadSessions } from '@/lib/actions/booking'
 import { cn } from '@/lib/cn'
+import { creditedCreator } from '@/lib/creator-credit'
 import { formatRand } from '@/lib/format'
 import { quote } from '@/lib/pricing'
 import { formatSessionDate, type Session } from '@/lib/sessions'
@@ -50,11 +51,14 @@ export function BookingWidget({
   const choice = selected && selected.remaining >= guests ? selected : null
   const { subtotal, fee, total } = quote(price, guests)
 
+  // Only after a choice (so never during hydration): the creator this guest came from, if any.
+  const creator = choice ? creditedCreator() : null
   const bookHref = choice
     ? `/experiences/${experienceId}/book?${new URLSearchParams({
         date: choice.date,
         time: choice.time,
         guests: String(guests),
+        ...(creator ? { creator } : {}),
       })}`
     : null
 

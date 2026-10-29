@@ -11,6 +11,8 @@ for (const path of [
   '/admin/hosts/a1000000-0000-0000-0000-000000000001',
   '/admin/creators',
   '/admin/creators/b1000000-0000-0000-0000-000000000001',
+  '/admin/payouts',
+  '/admin/payouts/host/a3000000-0000-0000-0000-000000000003',
 ]) {
   test(`${path} is locked to signed-out visitors`, async ({ page, request }) => {
     await page.goto(path)

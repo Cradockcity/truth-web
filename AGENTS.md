@@ -72,7 +72,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `is_admin()`: a row in `public.admins` plus `aal2`.
   - `get_availability`, `create_booking`, `get_booking` (token or owner).
   - `attach_payment_reference`, `confirm_booking_payment` (service role only).
-  - `claim_my_bookings`, `admin_replace_itinerary`, `admin_replace_schedule`, `admin_replace_creator_experiences`.
+  - `claim_my_bookings`, `admin_replace_itinerary`, `admin_replace_schedule`, `admin_replace_creator_experiences`, `admin_record_payout`, `admin_undo_payout`.
+  - Payouts: `payout_items` (earnings) and `payouts` (money sent), admin read-only. A trigger on `bookings` records earnings when a booking becomes paid and voids unpaid ones when it is cancelled. A host's percentage is Truth's commission; a creator's is their share, paid from Truth's part.
   - Private columns: `hosts.email` and `hosts/creators.revenue_share_percentage` have no `SELECT` for `anon`/`authenticated` (column grants only). Never `select('*')` on `hosts` or `creators` with the user clients; admins read them in `src/lib/admin/people.ts` with the service role.
   - Tables `experience_schedules`, `experience_blackouts`, `saved_experiences`, `admins`.
 

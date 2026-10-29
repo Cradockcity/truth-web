@@ -7,6 +7,7 @@ import { Suspense } from 'react'
 import { ExperienceCard } from '@/components/experience/experience-card'
 import { ExperienceGrid } from '@/components/experience/experience-grid'
 import { SiteHeader } from '@/components/site/header'
+import { RememberCreator } from '@/components/site/remember-creator'
 import { buttonVariants } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { getCreator, getCreatorSlugs } from '@/lib/data/creators'
@@ -148,6 +149,7 @@ async function CreatorProfile({ slug }: { slug: string }) {
         </div>
       </div>
 
+      <RememberCreator slug={creator.slug} />
       <section aria-labelledby="picks-heading" className="mt-16">
         <h2 id="picks-heading" className="mb-6 text-title font-semibold">
           {creator.name}&apos;s picks

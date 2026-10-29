@@ -198,7 +198,7 @@ export type Database = {
           location: string | null
           name: string
           personal_tags: string[] | null
-          revenue_share_percentage: number | null
+          revenue_share_percentage: number
           signature_quote: string | null
           slug: string
           social_instagram: string | null
@@ -218,7 +218,7 @@ export type Database = {
           location?: string | null
           name: string
           personal_tags?: string[] | null
-          revenue_share_percentage?: number | null
+          revenue_share_percentage?: number
           signature_quote?: string | null
           slug: string
           social_instagram?: string | null
@@ -238,7 +238,7 @@ export type Database = {
           location?: string | null
           name?: string
           personal_tags?: string[] | null
-          revenue_share_percentage?: number | null
+          revenue_share_percentage?: number
           signature_quote?: string | null
           slug?: string
           social_instagram?: string | null
@@ -448,7 +448,7 @@ export type Database = {
           languages: string[] | null
           location: string | null
           name: string
-          revenue_share_percentage: number | null
+          revenue_share_percentage: number
           social_instagram: string | null
           social_twitter: string | null
           social_website: string | null
@@ -466,7 +466,7 @@ export type Database = {
           languages?: string[] | null
           location?: string | null
           name: string
-          revenue_share_percentage?: number | null
+          revenue_share_percentage?: number
           social_instagram?: string | null
           social_twitter?: string | null
           social_website?: string | null
@@ -484,7 +484,7 @@ export type Database = {
           languages?: string[] | null
           location?: string | null
           name?: string
-          revenue_share_percentage?: number | null
+          revenue_share_percentage?: number
           social_instagram?: string | null
           social_twitter?: string | null
           social_website?: string | null
@@ -493,6 +493,140 @@ export type Database = {
           verification_badges?: string[] | null
         }
         Relationships: []
+      }
+      payout_items: {
+        Row: {
+          amount: number
+          base_amount: number
+          booking_id: string
+          created_at: string
+          creator_id: string | null
+          due_on: string
+          host_id: string | null
+          id: string
+          payout_id: string | null
+          rate: number
+          recipient: string
+          recipient_name: string
+          voided_at: string | null
+        }
+        Insert: {
+          amount: number
+          base_amount: number
+          booking_id: string
+          created_at?: string
+          creator_id?: string | null
+          due_on: string
+          host_id?: string | null
+          id?: string
+          payout_id?: string | null
+          rate: number
+          recipient: string
+          recipient_name: string
+          voided_at?: string | null
+        }
+        Update: {
+          amount?: number
+          base_amount?: number
+          booking_id?: string
+          created_at?: string
+          creator_id?: string | null
+          due_on?: string
+          host_id?: string | null
+          id?: string
+          payout_id?: string | null
+          rate?: number
+          recipient?: string
+          recipient_name?: string
+          voided_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_items_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_items_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_items_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          creator_id: string | null
+          host_id: string | null
+          id: string
+          note: string | null
+          paid_on: string
+          recipient: string
+          recipient_name: string
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          creator_id?: string | null
+          host_id?: string | null
+          id?: string
+          note?: string | null
+          paid_on: string
+          recipient: string
+          recipient_name: string
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          creator_id?: string | null
+          host_id?: string | null
+          id?: string
+          note?: string | null
+          paid_on?: string
+          recipient?: string
+          recipient_name?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -566,6 +700,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_record_payout: {
+        Args: {
+          p_item_ids: string[]
+          p_note: string
+          p_paid_on: string
+          p_recipient: string
+          p_recipient_id: string
+          p_reference: string
+        }
+        Returns: string
+      }
       admin_replace_creator_experiences: {
         Args: { p_creator_id: string; p_experience_ids: string[] }
         Returns: number
@@ -578,6 +723,7 @@ export type Database = {
         Args: { p_experience_id: string; p_slots: Json }
         Returns: number
       }
+      admin_undo_payout: { Args: { p_payout_id: string }; Returns: undefined }
       attach_payment_reference: {
         Args: { p_booking_id: string; p_reference: string }
         Returns: {
@@ -649,6 +795,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      record_booking_earnings: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

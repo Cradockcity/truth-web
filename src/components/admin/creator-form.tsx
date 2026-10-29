@@ -85,9 +85,9 @@ export function CreatorForm({ creator }: { creator: EditableCreator | null }) {
           <Input id="followers" name="followers" maxLength={20} defaultValue={c?.followers} />
         </Field>
         <Field
-          label="Revenue share (%)"
+          label="Creator's share (%)"
           htmlFor="revenueShare"
-          hint="The creator's share of bookings they refer. Only admins see this."
+          hint="Of the experience price of bookings they refer, paid from Truth's commission. Only admins see this."
         >
           <Input
             id="revenueShare"

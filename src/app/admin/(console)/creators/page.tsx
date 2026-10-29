@@ -33,6 +33,7 @@ export default async function AdminCreatorsPage() {
               avatarUrl={creator.avatarUrl}
               detail={[`/creators/${creator.slug}`, creator.location].filter(Boolean).join(' · ')}
               share={creator.revenueShare}
+              shareLabel="share"
               count={creator.pickCount === 1 ? '1 pick' : `${creator.pickCount} picks`}
             />
           ))}

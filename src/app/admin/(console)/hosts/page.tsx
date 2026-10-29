@@ -33,6 +33,7 @@ export default async function AdminHostsPage() {
               avatarUrl={host.avatarUrl}
               detail={[host.email, host.location].filter(Boolean).join(' · ')}
               share={host.revenueShare}
+              shareLabel="commission"
               count={
                 host.experienceCount === 1 ? '1 experience' : `${host.experienceCount} experiences`
               }

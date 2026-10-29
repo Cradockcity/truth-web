@@ -8,6 +8,7 @@ export function PersonRow({
   avatarUrl,
   detail,
   share,
+  shareLabel,
   count,
 }: {
   href: string
@@ -15,6 +16,7 @@ export function PersonRow({
   avatarUrl: string | null
   detail: string
   share: number | null
+  shareLabel: string
   count: string
 }) {
   return (
@@ -31,8 +33,9 @@ export function PersonRow({
         <span className="truncate text-caption text-ink/60">{detail}</span>
       </div>
       <span className="hidden text-caption text-ink/60 sm:block">{count}</span>
-      <span className="w-14 text-right text-caption tabular-nums" title="Revenue share">
+      <span className="flex w-24 flex-col items-end text-caption tabular-nums">
         {share !== null ? `${share}%` : '—'}
+        <span className="text-ink/50">{shareLabel}</span>
       </span>
     </li>
   )

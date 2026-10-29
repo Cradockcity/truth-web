@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { CancelBookingForm } from '@/components/admin/cancel-booking-form'
 import { StatusChip } from '@/components/admin/status-chip'
 import { type AdminBooking, getAdminBooking, syncRefundStatus } from '@/lib/admin/bookings'
+import { getBookingEarnings } from '@/lib/admin/payouts'
 import { isUuid } from '@/lib/data/experiences'
 import { formatRand } from '@/lib/format'
 import { formatSessionDate } from '@/lib/sessions'
@@ -21,7 +22,7 @@ export default async function AdminBookingPage({ params }: PageProps<'/admin/boo
   const { id } = await params
   const found = isUuid(id) ? await getAdminBooking(id) : null
   if (!found) notFound()
-  const booking = await syncRefundStatus(found)
+  const [booking, earnings] = await Promise.all([syncRefundStatus(found), getBookingEarnings(id)])
 
   const open =
     booking.status === 'paid' || booking.status === 'pending' || booking.status === 'expired'
@@ -90,6 +91,38 @@ export default async function AdminBookingPage({ params }: PageProps<'/admin/boo
           <Row label="Paystack reference">
             <span className="font-mono text-caption">{booking.paymentReference ?? '—'}</span>
           </Row>
+        </Panel>
+
+        <Panel title="Payouts">
+          {earnings.length === 0 ? (
+            <p className="text-ink/60">
+              {booking.status === 'paid'
+                ? 'No earnings recorded for this booking.'
+                : 'Hosts and creators earn once a booking is paid.'}
+            </p>
+          ) : (
+            earnings.map((earning) => (
+              <Row
+                key={earning.id}
+                label={`${earning.recipient === 'host' ? 'Host' : 'Creator'}: ${earning.name}`}
+              >
+                <Link
+                  href={`/admin/payouts/${earning.recipient}/${earning.personId}`}
+                  className="inline-flex items-center gap-2 underline-offset-4 hover:underline"
+                >
+                  {formatRand(earning.amount)}
+                  <StatusChip status={earning.status} />
+                </Link>
+              </Row>
+            ))
+          )}
+          {booking.status === 'cancelled' &&
+          earnings.some((earning) => earning.status === 'paid') ? (
+            <p className="text-danger">
+              Cancelled after it was paid out. Ask for that money back, or take it off their next
+              payment.
+            </p>
+          ) : null}
         </Panel>
 
         <Panel title="History">

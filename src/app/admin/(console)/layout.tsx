@@ -1,4 +1,12 @@
-import { CalendarCheck, Compass, LayoutDashboard, LogOut, Sparkles, Users } from 'lucide-react'
+import {
+  CalendarCheck,
+  Compass,
+  LayoutDashboard,
+  LogOut,
+  Sparkles,
+  Users,
+  Wallet,
+} from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -15,6 +23,7 @@ export const metadata: Metadata = {
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
+  { href: '/admin/payouts', label: 'Payouts', icon: Wallet },
   { href: '/admin/experiences', label: 'Experiences', icon: Compass },
   { href: '/admin/hosts', label: 'Hosts', icon: Users },
   { href: '/admin/creators', label: 'Creators', icon: Sparkles },

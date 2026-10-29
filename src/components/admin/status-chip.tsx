@@ -6,6 +6,9 @@ const STATUS: Record<string, { label: string; className: string }> = {
   expired: { label: 'Hold expired', className: 'bg-raised text-ink/55' },
   failed: { label: 'Payment failed', className: 'bg-danger/12 text-danger' },
   cancelled: { label: 'Cancelled', className: 'bg-raised text-ink/55' },
+  // Payout earnings
+  due: { label: 'Due', className: 'bg-accent-soft text-ink' },
+  upcoming: { label: 'Upcoming', className: 'bg-raised text-ink/80' },
 }
 
 export function StatusChip({ status, className }: { status: string; className?: string }) {

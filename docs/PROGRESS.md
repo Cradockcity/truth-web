@@ -1,8 +1,8 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-29 (4c done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-29 (4d payouts done). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
-**Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c) → 5 hardening and launch.
+**Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts) → 5 hardening and launch (postponed by the owner until after 4d).
 
 ## Status
 
@@ -14,7 +14,8 @@ Last updated: 2026-10-29 (4c done). The approved plan and the original audit are
 | 3 Booking, Paystack (test), customer sign-in, My bookings        | Done, except Google sign-in (needs owner setup) | `d1d0e09`, `c1a9daf` |
 | 4a Admin: MFA sign-in, dashboard, bookings, cancel/refund        | Done, tested by owner                           | `50b027a`            |
 | 4b Admin: experience editor                                      | Done, tested by owner                           | `c8a63a2`            |
-| 4c Admin: hosts, creators, privacy migration                     | Done, tested                                    | (this commit)        |
+| 4c Admin: hosts, creators, privacy migration                     | Done, tested                                    | `5525d02`            |
+| 4d Admin: payouts to hosts and creators, creator credit          | Done, tested                                    | (this commit)        |
 | **5 Hardening and launch**                                       | **Next (see open items below)**                 | —                    |
 
 ## 4b: experience editor (done)
@@ -37,6 +38,39 @@ Last updated: 2026-10-29 (4c done). The approved plan and the original audit are
 - Deleting is blocked for a host who runs experiences, and for a creator who has bookings.
 - Social fields accept a handle (`@name`) or a link and store an https link; websites can be typed without `https://`.
 - Tested signed in (owner signed in, Claude drove the browser): host edit, photo upload/replace/remove with old files deleted from Storage, duplicate email error keeps the form, blocked delete of a host with experiences, create and delete a host; creator edit, cover upload, picks change shown on the public page, taken and invalid web address, create, pick and delete a creator. All test changes were reverted. Deleting a creator with bookings was tried with a temporary expired booking (then removed) and is blocked. E2E covers the signed-out lockout of the new pages.
+
+## 4d: payouts (done)
+
+Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
+
+- **Money rules (owner):**
+  - A host's percentage is **Truth's commission**; the host gets the rest of the experience price × guests (`subtotal`).
+  - A creator's percentage is paid **from Truth's part** when the guest came from their page.
+  - The guest's 5% service fee stays with Truth, and Paystack's fees come out of Truth's part.
+  - Example, R1 000 at 18% commission and a 5% creator: host R820, creator R50, Truth R130 plus the fee.
+- **Creator credit:**
+  - Visiting `/creators/[slug]` stores `truth-creator` in localStorage for 30 days, last visit wins (`src/lib/creator-credit.ts` + test, `RememberCreator`).
+  - `BookingWidget` adds `&creator=` to the Reserve link.
+  - `create_booking` only credits a creator who recommends that experience.
+  - Before 4d no booking had a creator: the creator page never passed it on.
+- **Migration `20261101090000_payouts.sql` (run by the owner):**
+  - tables `payout_items` (earnings: one per person per paid booking, rate locked at payment) and `payouts` (money sent), admin read-only via RLS;
+  - triggers on `bookings`: paid → `record_booking_earnings`, cancelled → earnings not yet paid out are voided;
+  - RPCs `admin_record_payout` and `admin_undo_payout`;
+  - host and creator percentages are now `not null`.
+  - The backfill found one old-app test booking marked paid (`6319e454…`, March 2026): Michael Brown is owed R126,40.
+- **Earning status:** Upcoming → Due (the day after the session, SA time) → Paid; Cancelled if the booking is cancelled before payout. A booking cancelled after payout shows a warning on its admin page.
+- **Code:**
+  - pages `src/app/admin/(console)/payouts/{page, [recipient]/[id]/page}.tsx`, plus a Payouts panel on the booking page;
+  - data `src/lib/admin/payouts.ts`, actions `src/lib/actions/admin-payouts.ts`, helpers `src/lib/payouts.ts` (+ test);
+  - components `record-payout-form`, `undo-payout-button`, `recipient-chip`.
+  - The host form now says "Truth's commission (%)"; both percentages are required.
+- **Tested** (owner signed in, Claude drove the browser):
+  - a test booking via a creator, paid through `confirm_booking_payment`, recorded R196,80 for the host (82% of R240) and R12 for the creator;
+  - record payment, undo, and cancel (paid line kept, unpaid line voided; undo after cancel → cancelled);
+  - the public creator → Reserve → book form carries `creator`.
+  - Test data was removed afterwards. E2E covers the signed-out lockout.
+- **Later:** bank details (owner paused), automatic payouts via the Paystack Transfers API (~R3 per transfer, needs bank details), CSV export, emailed statements.
 
 ## Open items before launch (step 5)
 
