@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { HostForm } from '@/components/admin/host-form'
 import { Section } from '@/components/admin/save-status'
 
+export const instant = false
+
 export const metadata = { title: 'New host' }
 
 export default function NewHostPage() {

@@ -5,6 +5,8 @@ import { PersonRow } from '@/components/admin/person-row'
 import { buttonVariants } from '@/components/ui/button'
 import { listHosts } from '@/lib/admin/people'
 
+export const instant = false
+
 export const metadata = { title: 'Hosts' }
 
 export default async function AdminHostsPage() {

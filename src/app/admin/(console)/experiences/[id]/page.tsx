@@ -17,6 +17,8 @@ import { isUuid } from '@/lib/data/experiences'
 import { parseGroupSize } from '@/lib/filters'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
+export const instant = false
+
 export const metadata = { title: 'Edit experience' }
 
 const SECTIONS = [

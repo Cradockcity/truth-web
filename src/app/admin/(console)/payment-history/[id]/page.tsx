@@ -9,6 +9,8 @@ import { isUuid } from '@/lib/data/experiences'
 import { formatRand } from '@/lib/format'
 import { formatDay } from '@/lib/payouts'
 
+export const instant = false
+
 export const metadata = { title: 'Payment statement' }
 
 // A statement for one payment: which bookings it paid for. Printable, or saved as a PDF

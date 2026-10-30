@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { CreatorForm } from '@/components/admin/creator-form'
 import { Section } from '@/components/admin/save-status'
 
+export const instant = false
+
 export const metadata = { title: 'New creator' }
 
 export default function NewCreatorPage() {

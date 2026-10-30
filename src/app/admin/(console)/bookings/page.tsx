@@ -18,6 +18,8 @@ import {
 import { formatRand } from '@/lib/format'
 import { formatDay } from '@/lib/payouts'
 
+export const instant = false
+
 export const metadata = { title: 'Bookings' }
 
 const STATUS_LABELS: Record<BookingFilters['status'], string> = {

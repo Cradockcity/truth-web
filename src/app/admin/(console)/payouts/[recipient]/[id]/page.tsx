@@ -12,6 +12,8 @@ import { formatRand } from '@/lib/format'
 import { formatDay, RECIPIENTS, sumAmounts } from '@/lib/payouts'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
+export const instant = false
+
 export const metadata = { title: 'Payouts' }
 
 export default async function PersonPayoutsPage({

@@ -5,6 +5,8 @@ import { PersonRow } from '@/components/admin/person-row'
 import { buttonVariants } from '@/components/ui/button'
 import { listCreators } from '@/lib/admin/people'
 
+export const instant = false
+
 export const metadata = { title: 'Creators' }
 
 export default async function AdminCreatorsPage() {

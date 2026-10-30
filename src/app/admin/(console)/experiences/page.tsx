@@ -6,6 +6,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { listAdminExperiences } from '@/lib/admin/experiences'
 import { formatRand } from '@/lib/format'
 
+export const instant = false
+
 export const metadata = { title: 'Experiences' }
 
 export default async function AdminExperiencesPage() {

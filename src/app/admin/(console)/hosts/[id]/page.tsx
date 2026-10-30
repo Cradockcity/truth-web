@@ -8,6 +8,8 @@ import { deleteHost } from '@/lib/actions/admin-people'
 import { getEditableHost } from '@/lib/admin/people'
 import { isUuid } from '@/lib/data/experiences'
 
+export const instant = false
+
 export const metadata = { title: 'Edit host' }
 
 export default async function EditHostPage({

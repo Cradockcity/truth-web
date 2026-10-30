@@ -1,5 +1,6 @@
 import { ChevronRight, Download } from 'lucide-react'
 import Link from 'next/link'
+import { connection } from 'next/server'
 
 import { BarChart } from '@/components/admin/bar-chart'
 import { RecipientChip } from '@/components/admin/recipient-chip'
@@ -22,6 +23,8 @@ import {
 } from '@/lib/payouts'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
+export const instant = false
+
 export const metadata = { title: 'Payment history' }
 
 const bookingCount = (n: number) => (n === 1 ? '1 booking' : `${n} bookings`)
@@ -36,6 +39,7 @@ const SERIES = [
 export default async function PaymentHistoryPage({
   searchParams,
 }: PageProps<'/admin/payment-history'>) {
+  await connection()
   const filters = parsePayoutFilters(await searchParams, Number(todayInSouthAfrica().slice(0, 4)))
   const [report, list, people] = await Promise.all([
     getPaymentHistoryReport(filters),

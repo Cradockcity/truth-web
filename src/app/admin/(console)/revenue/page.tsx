@@ -1,5 +1,6 @@
 import { Download } from 'lucide-react'
 import Link from 'next/link'
+import { connection } from 'next/server'
 
 import { BarChart } from '@/components/admin/bar-chart'
 import { FilterField, Pager, Stat } from '@/components/admin/report-parts'
@@ -22,6 +23,8 @@ import {
 } from '@/lib/revenue'
 import { todayInSouthAfrica } from '@/lib/sessions'
 
+export const instant = false
+
 export const metadata = { title: 'Revenue' }
 
 const percent = new Intl.NumberFormat('en-ZA', { style: 'percent', maximumFractionDigits: 1 })
@@ -29,6 +32,7 @@ const percent = new Intl.NumberFormat('en-ZA', { style: 'percent', maximumFracti
 // What Truth made: guest payments less refunds, host and creator shares and Paystack's fees.
 export default async function RevenuePage({ searchParams }: PageProps<'/admin/revenue'>) {
   // Read the request first: the current date may only be used after it (Cache Components).
+  await connection()
   const params = await searchParams
   const thisYear = Number(todayInSouthAfrica().slice(0, 4))
   const filters = parseRevenueFilters(params, thisYear)

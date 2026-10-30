@@ -10,6 +10,8 @@ import { isUuid } from '@/lib/data/experiences'
 import { formatRand } from '@/lib/format'
 import { formatSessionDate } from '@/lib/sessions'
 
+export const instant = false
+
 export const metadata = { title: 'Booking' }
 
 const when = new Intl.DateTimeFormat('en-GB', {

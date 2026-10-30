@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
+// The console is signed-in only (MFA + aal2), so it's always rendered at
+// request time. Opt out of instant-navigation validation so each page can
+// read the session through requireAdmin() without needing its own Suspense.
+export const instant = false
+
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },

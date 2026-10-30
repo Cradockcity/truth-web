@@ -6,6 +6,8 @@ import { Suspense } from 'react'
 import { AdminSignInForm } from '@/components/admin/admin-sign-in-form'
 import { createClient } from '@/lib/supabase/server'
 
+export const instant = false
+
 export const metadata: Metadata = { title: 'Admin sign in', robots: { index: false } }
 
 const NOTICES: Record<string, string> = {

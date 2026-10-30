@@ -8,6 +8,8 @@ import { getPayoutsOverview } from '@/lib/admin/payouts'
 import { formatRand } from '@/lib/format'
 import { formatDay, groupOwed, type Owed, sumAmounts } from '@/lib/payouts'
 
+export const instant = false
+
 export const metadata = { title: 'Payouts' }
 
 export default async function AdminPayoutsPage() {

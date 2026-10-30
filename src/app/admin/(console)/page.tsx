@@ -4,6 +4,8 @@ import { BookingTable } from '@/components/admin/booking-table'
 import { getDashboard } from '@/lib/admin/bookings'
 import { formatRand } from '@/lib/format'
 
+export const instant = false
+
 export default async function AdminDashboard() {
   const data = await getDashboard()
 

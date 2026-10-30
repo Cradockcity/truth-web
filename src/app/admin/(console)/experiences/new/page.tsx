@@ -4,6 +4,8 @@ import { ExperienceDetailsForm } from '@/components/admin/experience-details-for
 import { Section } from '@/components/admin/save-status'
 import { listCategoryOptions, listHostOptions } from '@/lib/admin/experiences'
 
+export const instant = false
+
 export const metadata = { title: 'New experience' }
 
 export default async function NewExperiencePage() {

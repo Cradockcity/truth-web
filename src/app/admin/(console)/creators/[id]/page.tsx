@@ -10,6 +10,8 @@ import { deleteCreator } from '@/lib/actions/admin-people'
 import { getEditableCreator, listExperienceOptions } from '@/lib/admin/people'
 import { isUuid } from '@/lib/data/experiences'
 
+export const instant = false
+
 export const metadata = { title: 'Edit creator' }
 
 export default async function EditCreatorPage({
