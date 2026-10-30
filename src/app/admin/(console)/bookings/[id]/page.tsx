@@ -83,7 +83,7 @@ export default async function AdminBookingPage({ params }: PageProps<'/admin/boo
 
         <Panel title="Payment">
           <Row label="Experience">{formatRand(booking.subtotal)}</Row>
-          <Row label="Service fee">{formatRand(booking.fee)}</Row>
+          {booking.fee > 0 ? <Row label="Service fee">{formatRand(booking.fee)}</Row> : null}
           <Row label="Total">
             <strong>{formatRand(booking.total)}</strong>
           </Row>

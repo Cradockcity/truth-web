@@ -91,7 +91,7 @@ async function Checkout({
     )
   }
 
-  const { subtotal, fee, total } = quote(experience.price, guests)
+  const { total } = quote(experience.price, guests)
 
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-16">
@@ -157,21 +157,11 @@ async function Checkout({
               <p className="text-caption text-ink/60">{experience.location}</p>
             </div>
           </div>
-          <dl className="flex flex-col gap-2 border-t border-line pt-4 text-caption">
-            <div className="flex justify-between gap-4 text-ink/75">
-              <dt>
-                {formatRand(experience.price)} × {guests} {guests === 1 ? 'guest' : 'guests'}
-              </dt>
-              <dd>{formatRand(subtotal)}</dd>
-            </div>
-            <div className="flex justify-between gap-4 text-ink/75">
-              <dt>Service fee</dt>
-              <dd>{formatRand(fee)}</dd>
-            </div>
-            <div className="flex justify-between gap-4 border-t border-line pt-3 text-body font-semibold">
-              <dt>Total (ZAR)</dt>
-              <dd>{formatRand(total)}</dd>
-            </div>
+          <dl className="flex justify-between gap-4 border-t border-line pt-4 text-body font-semibold">
+            <dt>
+              {formatRand(experience.price)} × {guests} {guests === 1 ? 'guest' : 'guests'}
+            </dt>
+            <dd>{formatRand(total)}</dd>
           </dl>
           {experience.cancellationPolicy ? (
             <p className="text-caption text-ink/65">{experience.cancellationPolicy}</p>

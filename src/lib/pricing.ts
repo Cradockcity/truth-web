@@ -1,6 +1,7 @@
 // Display only. The authoritative price is computed in the create_booking() database function,
-// which must use the same rate.
-export const SERVICE_FEE_RATE = 0.05
+// which must use the same rate. New bookings have no service fee; historical rows kept whatever
+// they were charged at the time.
+export const SERVICE_FEE_RATE = 0
 
 export function quote(pricePerPerson: number, guests: number) {
   const subtotal = round2(pricePerPerson * guests)

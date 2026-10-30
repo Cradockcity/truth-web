@@ -49,7 +49,7 @@ export function BookingWidget({
     [sessions, guests],
   )
   const choice = selected && selected.remaining >= guests ? selected : null
-  const { subtotal, fee, total } = quote(price, guests)
+  const { total } = quote(price, guests)
 
   // Only after a choice (so never during hydration): the creator this guest came from, if any.
   const creator = choice ? creditedCreator() : null
@@ -109,21 +109,11 @@ export function BookingWidget({
       </fieldset>
 
       {choice ? (
-        <dl className="flex flex-col gap-2 border-t border-line pt-4 text-caption">
-          <div className="flex justify-between gap-4 text-ink/75">
-            <dt>
-              {formatRand(price)} × {guests} {guests === 1 ? 'guest' : 'guests'}
-            </dt>
-            <dd>{formatRand(subtotal)}</dd>
-          </div>
-          <div className="flex justify-between gap-4 text-ink/75">
-            <dt>Service fee</dt>
-            <dd>{formatRand(fee)}</dd>
-          </div>
-          <div className="flex justify-between gap-4 pt-1 text-body font-semibold">
-            <dt>Total</dt>
-            <dd>{formatRand(total)}</dd>
-          </div>
+        <dl className="flex justify-between gap-4 border-t border-line pt-4 text-body font-semibold">
+          <dt>
+            {formatRand(price)} × {guests} {guests === 1 ? 'guest' : 'guests'}
+          </dt>
+          <dd>{formatRand(total)}</dd>
         </dl>
       ) : null}
 

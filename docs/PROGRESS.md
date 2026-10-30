@@ -55,9 +55,9 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
 
 - **Money rules (owner):**
   - A host's percentage is **Truth's commission**; the host gets the rest of the experience price × guests (`subtotal`).
-  - A creator's percentage is paid **from Truth's part** when the guest came from their page.
-  - The guest's 5% service fee stays with Truth, and Paystack's fees come out of Truth's part.
-  - Example, R1 000 at 18% commission and a 5% creator: host R820, creator R50, Truth R130 plus the fee.
+  - A creator's percentage is **of the subtotal**, paid **from Truth's part** when the guest came from their page.
+  - Paystack's fees come out of Truth's part. The guest pays the experience price, nothing added (the 5% service fee was removed on 2026-10-30; historical bookings keep the fee they were charged).
+  - Example, R1 000 at 18% commission and a 5% creator: guest pays R1 000, host R820, creator R50, Truth R130 before Paystack.
 - **Creator credit:**
   - Visiting `/creators/[slug]` stores `truth-creator` in localStorage for 30 days, last visit wins (`src/lib/creator-credit.ts` + test, `RememberCreator`).
   - `BookingWidget` adds `&creator=` to the Reserve link.
@@ -161,9 +161,9 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
 ## Owner decisions (don't relitigate)
 
 - **Design:** "Night cinema" design, with light/dark following the OS plus a Light/Dark/Auto toggle. Light mode is softened along Airbnb's lines. Archivo typeface; glass only over photos.
-- **Stack and payments:** Next.js 16, Supabase kept and hardened. Paystack, at ~2.9% + R1 for cards and 2% for EFT, plus a 5% service fee charged to guests.
+- **Stack and payments:** Next.js 16, Supabase kept and hardened. Paystack, at ~2.9% + R1 for cards and 2% for EFT. No service fee is added for the guest; the host's percentage is Truth's commission.
 - **Booking:** guest checkout, with optional sign-in by email link and Google. Availability is a weekly schedule plus blocked dates. Holds last 20 minutes.
-- **Refunds:** chosen per cancellation (full by default, minus service fee, or none) and sent through the Paystack API. Paystack doesn't return its own fee.
+- **Refunds:** chosen per cancellation (full by default, or none; the "minus service fee" option only shows for historical bookings that carry a fee) and sent through the Paystack API. Paystack doesn't return its own fee.
 - **Admin:** email + password + existing TOTP; access needs aal2 plus a row in `public.admins`.
 
 ## Test data in the shared Supabase project

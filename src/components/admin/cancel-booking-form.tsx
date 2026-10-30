@@ -38,11 +38,15 @@ export function CancelBookingForm({
           label: `Full refund, ${formatRand(total)}`,
           hint: 'Everything the guest paid',
         },
-        {
-          value: 'minus-fee',
-          label: `Refund ${formatRand(refundAmount('minus-fee', total, fee))}`,
-          hint: `Keeps the ${formatRand(fee)} service fee`,
-        },
+        ...(fee > 0
+          ? [
+              {
+                value: 'minus-fee' as const,
+                label: `Refund ${formatRand(refundAmount('minus-fee', total, fee))}`,
+                hint: `Keeps the ${formatRand(fee)} service fee`,
+              },
+            ]
+          : []),
         { value: 'none', label: 'No refund', hint: 'For example, a late cancellation or no-show' },
       ]
     : []

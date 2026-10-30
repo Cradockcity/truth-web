@@ -9,6 +9,7 @@ import { HoldCountdown } from '@/components/booking/hold-countdown'
 import { PayButton } from '@/components/booking/pay-button'
 import { SiteHeader } from '@/components/site/header'
 import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/cn'
 import { type BookingView, getBooking } from '@/lib/data/bookings'
 import { formatRand } from '@/lib/format'
 import { formatSessionDate } from '@/lib/sessions'
@@ -114,15 +115,24 @@ async function BookingDetails({
         </ul>
 
         <dl className="flex flex-col gap-2 border-t border-line pt-4 text-caption">
-          <div className="flex justify-between gap-4 text-ink/75">
-            <dt>Experience</dt>
-            <dd>{formatRand(booking.subtotal)}</dd>
-          </div>
-          <div className="flex justify-between gap-4 text-ink/75">
-            <dt>Service fee</dt>
-            <dd>{formatRand(booking.fee)}</dd>
-          </div>
-          <div className="flex justify-between gap-4 border-t border-line pt-3 text-body font-semibold">
+          {booking.fee > 0 ? (
+            <>
+              <div className="flex justify-between gap-4 text-ink/75">
+                <dt>Experience</dt>
+                <dd>{formatRand(booking.subtotal)}</dd>
+              </div>
+              <div className="flex justify-between gap-4 text-ink/75">
+                <dt>Service fee</dt>
+                <dd>{formatRand(booking.fee)}</dd>
+              </div>
+            </>
+          ) : null}
+          <div
+            className={cn(
+              'flex justify-between gap-4 text-body font-semibold',
+              booking.fee > 0 && 'border-t border-line pt-3',
+            )}
+          >
             <dt>{booking.status === 'paid' ? 'Paid (ZAR)' : 'Total (ZAR)'}</dt>
             <dd>{formatRand(booking.total)}</dd>
           </div>
