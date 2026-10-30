@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-29 (end of session: 4f done and pushed, step 5 on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-10-30 (end of session: 5% service fee removed, Date.now() dev warnings fixed, e2e assertion updated — all pushed; step 5 still on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
@@ -22,11 +22,18 @@ Last updated: 2026-10-29 (end of session: 4f done and pushed, step 5 on hold). T
 
 ## Start here next session
 
-- **All work is committed and pushed** (latest `0cbfecf`, 4f). Nothing is half-built.
+- **All work is committed and pushed** (latest `23638b5`). Nothing is half-built.
 - **Step 5 (launch) is on hold.** The owner postponed it to add the payouts and reports (4d–4f). Ask the owner what they want next; don't start step 5 unasked.
 - **Restart the :3000 dev server before testing payments.** One started by another chat ran old code and didn't save Paystack fees.
 - **Not yet tried by the owner:** printing or saving a statement as PDF (Payment history → View statement → Print).
 - **How the money screens fit together:** Payouts = who's owed now (record a payment there); Payment history = reports and statements of money already sent; Revenue = what Truth made per booking.
+
+### Done in the 2026-10-30 session
+
+- **5% service fee removed from new bookings** (`e74faa4`). Migration `20261103090000_remove_service_fee.sql` rewrote `create_booking` to insert `service_fee = 0, total_amount = subtotal` (owner ran it). The guest-facing book page (`src/app/(site)/experiences/[id]/book/page.tsx`) now shows one price line only; the hold page (`src/app/(site)/bookings/[id]/page.tsx`) only breaks out the fee when `booking.fee > 0`, so historical bookings keep their original breakdown. `src/lib/pricing.ts` and `src/components/booking/booking-widget.tsx` were updated to match.
+- **Date.now() prerender warnings fixed** (`e3dcd3f`). `await connection()` added inside Suspense on the admin routes that compute "today in SA" (`admin/revenue`, `admin/payment-history`, admin bookings, creator detail, host detail, booking detail) and `export const instant = false` on the admin console layout and leaf pages that compute "now". Walked all signed-in routes after a fresh dev restart — server log clean, no "unstable value" matches.
+- **Stale e2e assertion updated** (`23638b5`). `e2e/booking.spec.ts` now checks the Reserve link is visible instead of the removed "Service fee" text.
+- **End-to-end walkthrough done** in the browser pane (owner signed in at the pane): admin dashboard, bookings, booking detail, revenue, payment history, payouts, experiences, hosts, creators; public flow experience → book → reserve → hold page. New paid bookings show subtotal-only Guest-paid; historical rows keep their original fee.
 
 ## 4b: experience editor (done)
 
@@ -151,7 +158,6 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
   - Switch to the Paystack live key once the business is verified.
 - **Vercel:** deploy in region `dub1` (Supabase is in eu-west-1). Add GitHub Actions secrets (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) so CI e2e passes.
 - **Content:** several experience photos don't match their listing (the "kayaking" one shows a motorcycle). Replace them via the admin photo manager.
-- **Dev warning:** `next dev` logs "encountered the unstable value `Date.now()` while prerendering" on signed-in pages (`/admin/*`, `/account/bookings`). The dev overlay traces it to `@supabase/auth-js` `GoTrueClient._loadSession` (session expiry check), reached from server rendering. `pnpm build` passes. Find which server call reads the session outside a dynamic boundary before launch.
 - **Nice to have:**
   - the header search pill doesn't show the current search;
   - Google ratings caching;
