@@ -12,7 +12,7 @@ test('reserve a session and reach the payment step', async ({ page }) => {
   await sheet.locator('label').last().click()
   await expect(sheet).toBeHidden()
 
-  await expect(book.getByText('Service fee')).toBeVisible()
+  await expect(book.getByRole('link', { name: 'Reserve' })).toBeVisible()
   await book.getByRole('link', { name: 'Reserve' }).click()
 
   await expect(page.getByRole('heading', { name: 'Confirm your booking' })).toBeVisible()
