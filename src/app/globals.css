@@ -9,6 +9,7 @@
   --color-line: var(--line);
   --color-ink: var(--ink);
   --shadow-float: var(--float-shadow);
+  --shadow-lift: var(--lift-shadow);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-saved: var(--saved);
@@ -73,6 +74,8 @@
   --line: #dddddb;
   --ink: #222222;
   --float-shadow: 0 0 0 1px rgb(0 0 0 / 0.02), 0 6px 20px rgb(0 0 0 / 0.08);
+  /* Controls that hover over content as you scroll (the phone booking button). */
+  --lift-shadow: 0 2px 6px rgb(0 0 0 / 0.16), 0 14px 36px rgb(0 0 0 / 0.3);
   --accent: #6a4bae;
   --accent-soft: #ebe5f7;
   --saved: #d63d63;
@@ -94,6 +97,7 @@
     --control: #21251e;
     --line: rgb(241 238 230 / 0.12);
     --float-shadow: none;
+    --lift-shadow: 0 2px 6px rgb(0 0 0 / 0.4), 0 14px 36px rgb(0 0 0 / 0.6);
     --ink: #f1eee6;
     --accent: #a78bdb;
     --accent-soft: #3a2d55;
@@ -118,6 +122,7 @@
   --control: #21251e;
   --line: rgb(241 238 230 / 0.12);
   --float-shadow: none;
+  --lift-shadow: 0 2px 6px rgb(0 0 0 / 0.4), 0 14px 36px rgb(0 0 0 / 0.6);
   --ink: #f1eee6;
   --accent: #a78bdb;
   --accent-soft: #3a2d55;

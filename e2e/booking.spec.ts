@@ -2,10 +2,15 @@ import { expect, test } from '@playwright/test'
 
 // Creates a real 20-minute hold in the test database, on the furthest open session to stay out of
 // the way. Payment itself isn't automated: it runs on Paystack's hosted checkout.
-test('reserve a session and reach the payment step', async ({ page }) => {
+test('reserve a session and reach the payment step', async ({ page }, testInfo) => {
   await page.goto('/experiences/e1000000-0000-0000-0000-000000000001')
 
-  const book = page.getByRole('region', { name: 'Book this experience' })
+  // Phones book from a full-screen sheet behind the floating button; desktop from the side card.
+  let book = page.getByRole('region', { name: 'Book this experience' })
+  if (testInfo.project.name === 'mobile') {
+    await page.getByRole('button', { name: /Check dates/ }).click()
+    book = page.getByRole('dialog', { name: 'Book this experience' })
+  }
   await book.getByRole('button', { name: /Show all \d+ dates/ }).click()
 
   const sheet = page.getByRole('dialog', { name: 'All available dates' })

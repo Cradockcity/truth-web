@@ -5,6 +5,20 @@ import { useEffect, useRef, type ReactNode } from 'react'
 
 import { cn } from '@/lib/cn'
 
+const PLACEMENT = {
+  right: {
+    dialog: 'open:items-end sm:open:items-stretch sm:open:justify-end',
+    panel:
+      'max-h-[88dvh] rounded-t-sheet shadow-float sm:h-full sm:max-h-none sm:w-[26rem] sm:rounded-none sm:border-l sm:border-line',
+  },
+  center: {
+    dialog: 'open:items-end sm:open:items-center sm:open:justify-center',
+    panel:
+      'max-h-[88dvh] rounded-t-sheet shadow-float sm:max-h-[85dvh] sm:w-[34rem] sm:rounded-sheet',
+  },
+  full: { dialog: 'open:items-stretch', panel: 'h-full' },
+} as const
+
 // Native <dialog>: focus trapping, Escape to close and inert background come from the browser.
 export function Sheet({
   open,
@@ -19,7 +33,7 @@ export function Sheet({
   title: string
   children: ReactNode
   footer?: ReactNode
-  side?: 'right' | 'center'
+  side?: keyof typeof PLACEMENT
 }) {
   const ref = useRef<HTMLDialogElement>(null)
 
@@ -34,25 +48,21 @@ export function Sheet({
     <dialog
       ref={ref}
       aria-label={title}
-      onClose={onClose}
+      // React passes a nested sheet's close event up the tree; only react to this dialog's own.
+      onClose={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
       className={cn(
         'm-0 max-h-none max-w-none bg-transparent p-0 text-ink backdrop:bg-night/45 backdrop:backdrop-blur-[2px]',
-        'open:flex open:items-end sm:open:items-stretch',
-        side === 'right' ? 'sm:open:justify-end' : 'sm:open:items-center sm:open:justify-center',
+        'open:flex',
+        PLACEMENT[side].dialog,
         'h-dvh w-full',
       )}
     >
-      <div
-        className={cn(
-          'flex max-h-[88dvh] w-full flex-col rounded-t-sheet bg-canvas shadow-float sm:max-h-none',
-          side === 'right'
-            ? 'sm:h-full sm:w-[26rem] sm:rounded-none sm:border-l sm:border-line'
-            : 'sm:max-h-[85dvh] sm:w-[34rem] sm:rounded-sheet',
-        )}
-      >
+      <div className={cn('flex w-full flex-col bg-canvas', PLACEMENT[side].panel)}>
         <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
           <h2 className="text-lead font-semibold">{title}</h2>
           <button

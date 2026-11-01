@@ -17,9 +17,9 @@ import { notFound } from 'next/navigation'
 import { Suspense, type ReactNode } from 'react'
 
 import { BookingWidget } from '@/components/booking/booking-widget'
+import { MobileBooking } from '@/components/booking/mobile-booking'
 import { Gallery } from '@/components/experience/gallery'
 import { SiteHeader } from '@/components/site/header'
-import { buttonVariants } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import {
   type ExperienceDetail,
@@ -104,13 +104,13 @@ async function ExperienceDetails({ id }: { id: string }) {
 
       <Gallery id={experience.id} title={experience.title} images={experience.images} />
 
-      {/* One booking card: beside the content on desktop, straight after the title on phones. */}
+      {/* Desktop: the booking card sits beside the content. Phones: MobileBooking below. */}
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-16">
         <div className="min-w-0 lg:col-start-1">
           <TitleBlock experience={experience} />
         </div>
 
-        <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <aside className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block">
           <div className="lg:sticky lg:top-24">
             <BookingCard experience={experience} />
           </div>
@@ -184,7 +184,18 @@ async function ExperienceDetails({ id }: { id: string }) {
           <Reviews experience={experience} />
         </div>
       </div>
-      <MobileBookingBar price={experience.price} />
+      <MobileBooking
+        price={experience.price}
+        rating={experience.rating}
+        reviewCount={experience.reviewCount}
+      >
+        <div className="flex flex-col gap-6">
+          <BookingSummary experience={experience} />
+          <div className="flex flex-col gap-5">
+            <BookingDetails experience={experience} />
+          </div>
+        </div>
+      </MobileBooking>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(experience) }} />
     </>
   )
@@ -245,6 +256,14 @@ function BookingCard({ experience }: { experience: ExperienceDetail }) {
       aria-label="Book this experience"
       className="flex scroll-mt-24 flex-col gap-5 rounded-sheet border border-line bg-control p-6 shadow-float"
     >
+      <BookingDetails experience={experience} />
+    </section>
+  )
+}
+
+function BookingDetails({ experience }: { experience: ExperienceDetail }) {
+  return (
+    <>
       <p>
         <span className="text-title font-semibold">{formatRand(experience.price)}</span>
         <span className="text-ink/60"> per person</span>
@@ -260,22 +279,35 @@ function BookingCard({ experience }: { experience: ExperienceDetail }) {
           {experience.cancellationPolicy}
         </p>
       ) : null}
-    </section>
+    </>
   )
 }
 
-// Phones: the booking card sits below the content, so keep price and a shortcut in reach.
-function MobileBookingBar({ price }: { price: number }) {
+// Heads the phone booking sheet, which covers the page, so the guest still sees what they're booking.
+function BookingSummary({ experience }: { experience: ExperienceDetail }) {
+  const [image] = experience.images
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas/95 px-4 py-3 backdrop-blur-xl lg:hidden">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-        <p>
-          <span className="font-semibold">{formatRand(price)}</span>
-          <span className="text-caption text-ink/60"> per person</span>
+    <div className="flex items-center gap-3">
+      {image ? (
+        <Image
+          src={image}
+          alt=""
+          width={64}
+          height={64}
+          className="size-16 shrink-0 rounded-control object-cover"
+        />
+      ) : null}
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="leading-snug font-semibold text-balance">{experience.title}</p>
+        <p className="flex items-center gap-1 text-caption text-ink/70">
+          {experience.rating !== null && experience.reviewCount ? (
+            <>
+              <Star className="size-3 fill-ink" aria-hidden />
+              {experience.rating.toFixed(1)} ({experience.reviewCount}) ·{' '}
+            </>
+          ) : null}
+          {experience.location}
         </p>
-        <a href="#book" className={buttonVariants()}>
-          Check dates
-        </a>
       </div>
     </div>
   )
