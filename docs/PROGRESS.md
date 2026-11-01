@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1–3 committed and pushed: floating booking button on phones, search results as tiles, pop-up colours and the sticky home header; step 5 still on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-11-01, end of session. The customer redesign started in Claude Design, and batches 1–3 are committed and pushed: the floating booking button on phones, search results as tiles, pop-up colours and the sticky home header. Seven look-and-feel experiments are on the board, kept for later, with no code. Calendar sync with hosts' booking systems (Activitar) was researched; nothing is built. Step 5 is still on hold. The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
@@ -23,6 +23,8 @@ Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1�
 ## Start here next session
 
 - **Committed and pushed:** redesign batch 1, floating booking button on phones (`7ef7309`), and batch 2, search results as tiles (`14c182e`). Batch 3 (pop-ups follow the page colours; home header sticks after the hero) is committed and pushed too. Nothing is half-built. See "Customer redesign" below.
+- **Look-and-feel experiments are parked.** The owner said "keep these designs, remember them for later, nothing to code yet". Don't build any of them until the owner raises it. See "Design experiments" below.
+- **Calendar sync idea: research done, waiting on answers.** Next steps are the owner's: ask hosts which booking system they use, and contact Activitar with the questions in "Calendar sync" below. Offer to draft that email. Build nothing until Activitar answers.
 - **Step 5 (launch) is on hold.** The owner postponed it to add the payouts and reports (4d–4f). Ask the owner what they want next; don't start step 5 unasked.
 - **Restart the :3000 dev server before testing payments.** One started by another chat ran old code and didn't save Paystack fees.
 - **Not yet tried by the owner:** printing or saving a statement as PDF (Payment history → View statement → Print).
@@ -32,7 +34,12 @@ Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1�
 
 - **How we work:** the owner tries ideas on a Claude Design board; settled ideas are built into the code in small batches (build, test, show, commit on approval), then the board is refreshed from the code. The code's shared components and colour roles stay the source of truth.
 - **Design system artifact** (private): https://claude.ai/artifact/JJahdxASfohokLHpEt2rzc — tokens, type, radii and 11 customer components as static previews, built from `main@63c923b`.
-- **Design board** (private): https://claude.ai/artifact/GNjQuTqD4seiG8XN7fLFY4 — home and experience page, desktop and phone, day mode, plus phone night frames for the booking button. Real listings and Pexels photos uploaded as assets; session dates are samples.
+- **Design board** (private): https://claude.ai/artifact/GNjQuTqD4seiG8XN7fLFY4 (version 25). It has:
+  - the home and experience pages, desktop and phone, in day mode;
+  - phone night frames for the booking button;
+  - the shared cards, mini tiles and the search proposal;
+  - the look-and-feel experiments (see "Design experiments" below).
+  - Real listings and Pexels photos are uploaded as assets; session dates are samples. The owner edits the board too, so re-read its files before publishing.
 - **Batch 1, floating booking button on phones (`7ef7309`):**
   - Below `lg` the side booking card is hidden; `src/components/booking/mobile-booking.tsx` shows a floating pill (price, rating, "Check dates") in `bg-ink text-canvas`, so it is dark by day and light at night, with a new `shadow-lift` token (`--lift-shadow` in `globals.css`, stronger at night).
   - Tapping opens the booking widget in a full-screen `Sheet` (new `side="full"`), headed by a small summary (photo, title, rating, place). The widget mounts only when the sheet opens.
@@ -50,6 +57,53 @@ Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1�
   - New `HeaderShell` (`src/components/site/header-shell.tsx` + test): on the home page the header is fixed, floats over the hero in the night scheme, and once scrolled past the hero (`scrollY > innerHeight - 96`) turns into the normal solid header, sliding in (`animate-header-in`). Other pages keep the sticky solid header. `SearchPill` and `MenuButton` read `useHeaderFloating()` instead of an `overlay` prop.
 - **Batch 1 notes:**
   - Dev-only quirk seen while testing (also before this change): reloading an experience page in the browser pane can leave its streamed section unhydrated; a fresh navigation is fine and production e2e passes.
+
+### Design experiments (board only, kept for later, no code)
+
+These are all on the design board (version 25). Every text colour was checked for at least 4.5:1 contrast, and all content is real (6 listings, 787 reviews, Michael Brown). The owner hasn't picked one; they may mix ideas.
+
+- **Top row, right of the search proposal:**
+  - **1 · Golden hour** (`Warm-home`, desktop and phone): warm sand-white, terracotta, bush green, Fraunces headings.
+  - **Touch-up** (`Touchup-*`, at x8560): the lightest option. It keeps today's layout, font and components, with eight changes: a warm white page (#fbfaf7), a sunset glow on the hero with a sunset-to-lavender "experiences", colour-coded categories, more use of the purple accent, gold stars, soft warm card shadows, an "Explore by type" chip strip and a trust band (787 reviews · Paystack · from R75), and bolder section headings.
+    - It has day and night phone frames, a shared `Touchup-card`, and a "what changed" sheet.
+    - If chosen, it's mostly a colour-token change in `globals.css` plus two small home sections.
+- **Lower area, "Six design directions"** (y ≈ 7400+): an overview comparing all six, then one column per direction (style tile, home desktop, home phone):
+  - 2 · Field Notes (bento grid, mono labels)
+  - 3 · The Journal (editorial serif)
+  - 4 · Colour Block (bold colour; generic shapes only, no Ndebele or shweshwe motifs)
+  - 5 · Afterglow (immersive night, liquid glass; closest to today)
+  - 6 · Stillness (quiet luxury)
+
+### Calendar sync with hosts' booking systems (researched 2026-11-01, nothing built)
+
+**The owner's idea:** customers keep paying Truth through Paystack, but a Truth booking also blocks the slot in the booking system the host already uses (especially **Activitar**), so a slot can't be double-booked. In other words, block seats in the host's system and bypass that system's payment.
+
+- **This is a normal model.** The industry calls it "full payment to agent": the reseller collects the money and pays the operator their net amount. Truth's payouts already work this way; only the blocking part is new.
+- **Activitar:**
+  - Widely used by SA adventure operators (Storms River, Magoebaskloof, Le Bonheur and others).
+  - It offers an API to approved "distributors": GetYourGuide, Manawa, ExperienceGifts, and SA marketplaces like ActivityHub and Activity Awaits.
+  - There are no public developer docs, so Truth would have to apply as a distributor.
+  - Contact: support@activitar.com, +27 87 250 0276 (https://www.activitar.net/contact).
+  - Don't automate hosts' own Activitar logins; use the official distributor route.
+- **Questions for Activitar (unanswered):**
+  1. Can a distributor create a booking that blocks seats **without Activitar taking the payment** ("on account")? How does their "auto settlement of sales" work?
+  2. Can seats be held briefly while the customer pays, then confirmed or released?
+  3. Can we read remaining seats per time slot in real time?
+  4. Are we notified straight away when a host cancels, or closes a day or slot?
+  5. What does a distributor connection cost, and what are the terms?
+  6. Is there an iCal (calendar link) export or import as a simpler fallback?
+- **Question for hosts:** which booking system or calendar does each host use today (Activitar, Bókun, Rezdy, FareHarbor, Google Calendar, nothing)?
+- **Options, simplest first:**
+  - **iCal link out:** a private calendar link of Truth bookings per host. Small, but it only blocks anything if their system reads it.
+  - **iCal link in:** Truth polls the host's calendar every few minutes and closes busy slots. Medium effort; it only knows busy or free, not seat counts, and there is a short gap between polls.
+  - **Direct API:** an Activitar distributor connection, or **OCTO**, the open standard used by Bókun, Ventrata, TuriTop and Bilberry, so one build covers many systems. Larger, needs partner approval, but works live and per seat. FareHarbor's API is partner-approved only; Rezdy has an agent API.
+- **Change needed in Truth for any option:** availability is weekly `experience_schedules` (seats per slot) plus whole-day `experience_blackouts`. Sync needs per-slot blocks or "seats taken elsewhere" (an additive migration).
+- **Recommended order:**
+  1. Ask hosts what they use.
+  2. Email Activitar the questions.
+  3. Meanwhile, the iCal links are the cheap first build.
+  4. Build the Activitar connection once they confirm Truth can book without them taking the payment.
+  5. Add OCTO later if hosts use Bókun and similar systems.
 
 ### Done in the 2026-10-30 session
 
