@@ -4,6 +4,7 @@ import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { useHeaderFloating } from '@/components/site/header-shell'
 import { Button } from '@/components/ui/button'
 import { Sheet } from '@/components/ui/sheet'
 import { cn } from '@/lib/cn'
@@ -12,15 +13,8 @@ import { type ExperienceFilters, filtersToSearch, parseFilters } from '@/lib/fil
 
 import { FilterFields } from './filter-fields'
 
-export function SearchPill({
-  options,
-  overlay,
-  className,
-}: {
-  options: FilterOptions
-  overlay: boolean
-  className?: string
-}) {
+export function SearchPill({ options, className }: { options: FilterOptions; className?: string }) {
+  const overlay = useHeaderFloating()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<ExperienceFilters>(() => parseFilters({}))

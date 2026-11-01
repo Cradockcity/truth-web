@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1 and 2 committed: floating booking button on phones, search results as tiles; step 5 still on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1–3 committed and pushed: floating booking button on phones, search results as tiles, pop-up colours and the sticky home header; step 5 still on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
@@ -22,7 +22,7 @@ Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1 
 
 ## Start here next session
 
-- **Committed, not yet pushed:** redesign batch 1, floating booking button on phones (`7ef7309`), and batch 2, search results as tiles (`14c182e`). See "Customer redesign" below. Everything before them is pushed (`63c923b`).
+- **Committed and pushed:** redesign batch 1, floating booking button on phones (`7ef7309`), and batch 2, search results as tiles (`14c182e`). Batch 3 (pop-ups follow the page colours; home header sticks after the hero) is committed and pushed too. Nothing is half-built. See "Customer redesign" below.
 - **Step 5 (launch) is on hold.** The owner postponed it to add the payouts and reports (4d–4f). Ask the owner what they want next; don't start step 5 unasked.
 - **Restart the :3000 dev server before testing payments.** One started by another chat ran old code and didn't save Paystack fees.
 - **Not yet tried by the owner:** printing or saving a statement as PDF (Payment history → View statement → Print).
@@ -45,6 +45,9 @@ Last updated: 2026-11-01 (customer redesign started in Claude Design; batches 1 
   - `TileGrid` / `TileGridSkeleton` in `experience-grid.tsx`: 2 across on phones, 3/4/5 at sm/md/lg, 6 from xl.
   - `/experiences` uses tiles; the big `ExperienceCard` stays on home, creator pages and Saved. Styleguide has an "Experience tiles" section.
   - On the design board but not built (no screen uses them yet): a night-style featured card and a compact list-row mini card.
+- **Batch 3, pop-up colours and home header (committed):**
+  - `Sheet` now renders into `<body>` (portal, after mount), so pop-ups take the page's light/dark colours instead of the `scheme-dark` of the home hero header. This fixed the dark search and menu sheets on the home page in light mode.
+  - New `HeaderShell` (`src/components/site/header-shell.tsx` + test): on the home page the header is fixed, floats over the hero in the night scheme, and once scrolled past the hero (`scrollY > innerHeight - 96`) turns into the normal solid header, sliding in (`animate-header-in`). Other pages keep the sticky solid header. `SearchPill` and `MenuButton` read `useHeaderFloating()` instead of an `overlay` prop.
 - **Batch 1 notes:**
   - Dev-only quirk seen while testing (also before this change): reloading an experience page in the browser pane can leave its streamed section unhydrated; a fresh navigation is fine and production e2e passes.
 

@@ -11,6 +11,7 @@ import { cn } from '@/lib/cn'
 import { useSavedIds } from '@/lib/saved'
 import { useUser } from '@/lib/use-user'
 
+import { useHeaderFloating } from './header-shell'
 import { ThemeToggle } from './theme-toggle'
 
 const LINKS = [
@@ -22,7 +23,8 @@ const LINKS = [
 const ROW =
   'flex w-full cursor-pointer items-center gap-3 rounded-control px-3 py-3 text-left text-body font-medium transition-colors hover:bg-ink/6'
 
-export function MenuButton({ overlay, className }: { overlay: boolean; className?: string }) {
+export function MenuButton({ className }: { className?: string }) {
+  const overlay = useHeaderFloating()
   const [open, setOpen] = useState(false)
   const savedCount = useSavedIds().length
   const user = useUser()

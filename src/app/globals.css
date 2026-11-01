@@ -48,6 +48,16 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
   --animate-rise: rise 900ms var(--ease-out-quint) both;
+  --animate-header-in: header-in 300ms var(--ease-out-quint) both;
+
+  @keyframes header-in {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: none;
+    }
+  }
 
   @keyframes rise {
     from {
