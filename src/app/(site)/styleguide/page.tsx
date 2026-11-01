@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { ExperienceCard } from '@/components/experience/experience-card'
+import { TileGrid } from '@/components/experience/experience-grid'
+import { ExperienceTile } from '@/components/experience/experience-tile'
 import { SiteHeader } from '@/components/site/header'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -122,6 +124,12 @@ export default function StyleguidePage() {
             <Cards />
           </Suspense>
         </Section>
+
+        <Section title="Experience tiles">
+          <Suspense fallback={<p className="text-ink/60">Loading experiences</p>}>
+            <Tiles />
+          </Suspense>
+        </Section>
       </main>
     </>
   )
@@ -135,6 +143,17 @@ async function Cards() {
         <ExperienceCard key={experience.id} experience={experience} />
       ))}
     </div>
+  )
+}
+
+async function Tiles() {
+  const experiences = await getFeaturedExperiences(6)
+  return (
+    <TileGrid>
+      {experiences.map((experience) => (
+        <ExperienceTile key={experience.id} experience={experience} />
+      ))}
+    </TileGrid>
   )
 }
 

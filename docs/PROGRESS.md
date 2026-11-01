@@ -1,6 +1,6 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-10-30 (end of session: 5% service fee removed, Date.now() dev warnings fixed, e2e assertion updated — all pushed; step 5 still on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-11-01 (customer redesign started in Claude Design; first batch built: floating booking button on phones — not yet committed; step 5 still on hold). The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
@@ -22,11 +22,31 @@ Last updated: 2026-10-30 (end of session: 5% service fee removed, Date.now() dev
 
 ## Start here next session
 
-- **All work is committed and pushed** (latest `23638b5`). Nothing is half-built.
+- **Uncommitted:** redesign batch 1 (floating booking button on phones) and batch 2 (search results as tiles), tested; waiting for the owner's OK to commit. See "Customer redesign" below. Everything before it is committed and pushed (latest `63c923b`).
 - **Step 5 (launch) is on hold.** The owner postponed it to add the payouts and reports (4d–4f). Ask the owner what they want next; don't start step 5 unasked.
 - **Restart the :3000 dev server before testing payments.** One started by another chat ran old code and didn't save Paystack fees.
 - **Not yet tried by the owner:** printing or saving a statement as PDF (Payment history → View statement → Print).
 - **How the money screens fit together:** Payouts = who's owed now (record a payment there); Payment history = reports and statements of money already sent; Revenue = what Truth made per booking.
+
+### Customer redesign (started 2026-11-01, owner's choice; admin is out of scope)
+
+- **How we work:** the owner tries ideas on a Claude Design board; settled ideas are built into the code in small batches (build, test, show, commit on approval), then the board is refreshed from the code. The code's shared components and colour roles stay the source of truth.
+- **Design system artifact** (private): https://claude.ai/artifact/JJahdxASfohokLHpEt2rzc — tokens, type, radii and 11 customer components as static previews, built from `main@63c923b`.
+- **Design board** (private): https://claude.ai/artifact/GNjQuTqD4seiG8XN7fLFY4 — home and experience page, desktop and phone, day mode, plus phone night frames for the booking button. Real listings and Pexels photos uploaded as assets; session dates are samples.
+- **Batch 1, floating booking button on phones (built, not committed):**
+  - Below `lg` the side booking card is hidden; `src/components/booking/mobile-booking.tsx` shows a floating pill (price, rating, "Check dates") in `bg-ink text-canvas`, so it is dark by day and light at night, with a new `shadow-lift` token (`--lift-shadow` in `globals.css`, stronger at night).
+  - Tapping opens the booking widget in a full-screen `Sheet` (new `side="full"`), headed by a small summary (photo, title, rating, place). The widget mounts only when the sheet opens.
+  - Links to `#book` (back from the book page, rebook from an expired hold) open the sheet on phones.
+  - Following a link inside the sheet (Reserve) closes it first: Next keeps the left page mounted but hidden, and a modal left open there made the book page inert (caught by the mobile e2e).
+  - `Sheet` fix: a nested sheet's close event no longer closes the sheet around it (React passes `close` up the tree); `onClose` now checks the event target.
+  - e2e `booking.spec.ts` taps the floating button first on the mobile project.
+- **Batch 2, search results as tiles (built, not committed):**
+  - New shared `ExperienceTile` (`src/components/experience/experience-tile.tsx` + test): square photo with the existing `FavoriteButton`, title (2 lines), place, price (screen readers hear "per person") and rating. Same `ExperienceCardData` as `ExperienceCard`; no category or duration.
+  - `TileGrid` / `TileGridSkeleton` in `experience-grid.tsx`: 2 across on phones, 3/4/5 at sm/md/lg, 6 from xl.
+  - `/experiences` uses tiles; the big `ExperienceCard` stays on home, creator pages and Saved. Styleguide has an "Experience tiles" section.
+  - On the design board but not built (no screen uses them yet): a night-style featured card and a compact list-row mini card.
+- **Batch 1 notes:**
+  - Dev-only quirk seen while testing (also before this change): reloading an experience page in the browser pane can leave its streamed section unhydrated; a fresh navigation is fine and production e2e passes.
 
 ### Done in the 2026-10-30 session
 

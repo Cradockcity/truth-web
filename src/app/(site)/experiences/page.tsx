@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
-import { ExperienceCard } from '@/components/experience/experience-card'
-import { CardGridSkeleton, ExperienceGrid } from '@/components/experience/experience-grid'
+import { TileGrid, TileGridSkeleton } from '@/components/experience/experience-grid'
+import { ExperienceTile } from '@/components/experience/experience-tile'
 import { FiltersButton } from '@/components/search/filters-button'
 import { SiteHeader } from '@/components/site/header'
 import { buttonVariants } from '@/components/ui/button'
@@ -79,11 +79,11 @@ async function Results({ searchParams }: Pick<PageProps<'/experiences'>, 'search
       </div>
 
       {experiences.length > 0 ? (
-        <ExperienceGrid>
+        <TileGrid>
           {experiences.map((experience, index) => (
-            <ExperienceCard key={experience.id} experience={experience} priority={index < 4} />
+            <ExperienceTile key={experience.id} experience={experience} priority={index < 6} />
           ))}
-        </ExperienceGrid>
+        </TileGrid>
       ) : (
         <div className="flex flex-col items-start gap-4 rounded-sheet border border-line px-6 py-12 sm:px-10">
           <h2 className="text-title font-semibold">No experiences match these filters</h2>
@@ -113,7 +113,7 @@ function ResultsSkeleton() {
           <div key={index} className="h-9 w-24 rounded-full bg-surface" />
         ))}
       </div>
-      <CardGridSkeleton count={8} />
+      <TileGridSkeleton count={12} />
     </div>
   )
 }
