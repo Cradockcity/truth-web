@@ -1,9 +1,12 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 import { cn } from '@/lib/cn'
+
+const noSubscription = () => () => {}
 
 const PLACEMENT = {
   right: {
@@ -36,15 +39,24 @@ export function Sheet({
   side?: keyof typeof PLACEMENT
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  const mounted = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  )
 
   useEffect(() => {
     const dialog = ref.current
     if (!dialog) return
     if (open && !dialog.open) dialog.showModal()
     if (!open && dialog.open) dialog.close()
-  }, [open])
+  }, [open, mounted])
 
-  return (
+  if (!mounted) return null
+
+  // Rendered into <body> so the sheet takes the page's colours, not those of the control that opens
+  // it (the home header forces the night scheme over the hero photo).
+  return createPortal(
     <dialog
       ref={ref}
       aria-label={title}
@@ -77,6 +89,7 @@ export function Sheet({
         <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
         {footer ? <div className="border-t border-line px-5 py-4">{footer}</div> : null}
       </div>
-    </dialog>
+    </dialog>,
+    document.body,
   )
 }
