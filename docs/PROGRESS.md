@@ -311,7 +311,17 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
   - Register the Paystack webhook URL `/payments/paystack/webhook`.
   - Switch to the Paystack live key once the business is verified.
 - **Vercel:** deploy in region `dub1` (Supabase is in eu-west-1). Add GitHub Actions secrets (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) so CI e2e passes.
-- **Content:** several experience photos don't match their listing (the "kayaking" one shows a motorcycle). Replace them via the admin photo manager.
+- **Content:**
+  - The original six experiences' photos were replaced on 2026-11-03 with Pexels photos checked by eye, using the script `scratchpad/seed/fix-photos.mjs`.
+    - They had included a motorbike, a car, a conference room and personal screenshots.
+    - The photos were changed straight in the database, so the five old uploaded screenshots are still in the public `images` bucket under `experiences/`, but nothing uses them any more:
+      - `86cea634…png`
+      - `2087bc0c…png`
+      - `ac7c1c50…png`
+      - `6be34fa7…png`
+      - `a646e409…png`
+    - The owner can delete them in the Supabase dashboard.
+  - Real photos from hosts are still needed before launch.
 - **Nice to have:**
   - the header search pill doesn't show the current search;
   - Google ratings caching;
