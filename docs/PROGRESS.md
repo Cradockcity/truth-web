@@ -1,6 +1,17 @@
 # Truth rewrite: progress and handoff
 
-Last updated: 2026-11-01, end of session. The customer redesign started in Claude Design, and batches 1–3 are committed and pushed: the floating booking button on phones, search results as tiles, pop-up colours and the sticky home header. Seven look-and-feel experiments are on the board, kept for later, with no code. Calendar sync with hosts' booking systems (Activitar) was researched; nothing is built. Step 5 is still on hold. The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
+Last updated: 2026-11-03, end of session.
+
+- **2026-11-03:**
+  - A demo set of hosts, creators and experiences was added to the database.
+  - Creator logins and creator-owned pages were thought through, with the research saved and nothing built.
+- **2026-11-01:**
+  - The customer redesign started in Claude Design. Batches 1–3 are committed and pushed: the floating booking button on phones, search results as tiles, pop-up colours and the sticky home header.
+  - Seven look-and-feel experiments are on the board, kept for later, with no code.
+  - Calendar sync with hosts' booking systems (Activitar) was researched; nothing is built.
+- Step 5 is still on hold.
+
+The approved plan and the original audit are in `C:\Users\ryanc\.claude\plans\i-d-like-you-to-lexical-treasure.md`.
 
 **Plan:** 0 foundations → 1 design system → 2 public browsing → 3 booking and payments → 4 admin (4a, 4b, 4c, 4d payouts, 4e search, 4f reports) → 5 hardening and launch (postponed by the owner).
 
@@ -22,6 +33,12 @@ Last updated: 2026-11-01, end of session. The customer redesign started in Claud
 
 ## Start here next session
 
+- **Creator logins and creator pages: talk this through first.**
+  - The owner asked to keep all the research and feedback to discuss next session.
+  - Open by walking them through the verdict and the 5 decisions in "Creator logins and creator pages" below.
+  - The full research is in `docs/research/creator-pages-2026-11-03.md`.
+  - Build nothing until the owner decides.
+- **A demo set is in the database** for showing the app: 5 hosts, 2 creators and 8 experiences (see "Test data").
 - **Committed and pushed:** redesign batch 1, floating booking button on phones (`7ef7309`), and batch 2, search results as tiles (`14c182e`). Batch 3 (pop-ups follow the page colours; home header sticks after the hero) is committed and pushed too. Nothing is half-built. See "Customer redesign" below.
 - **Look-and-feel experiments are parked.** The owner said "keep these designs, remember them for later, nothing to code yet". Don't build any of them until the owner raises it. See "Design experiments" below.
 - **Calendar sync idea: research done, waiting on answers.** Next steps are the owner's: ask hosts which booking system they use, and contact Activitar with the questions in "Calendar sync" below. Offer to draft that email. Build nothing until Activitar answers.
@@ -104,6 +121,66 @@ These are all on the design board (version 25). Every text colour was checked fo
   3. Meanwhile, the iCal links are the cheap first build.
   4. Build the Activitar connection once they confirm Truth can book without them taking the payment.
   5. Add OCTO later if hosts use Bókun and similar systems.
+
+### Creator logins and creator pages (thought through 2026-11-03, nothing built)
+
+**The owner's question:**
+
+- Could creators and customers both log in?
+- Could each creator's public page be their own, maybe on their own domain?
+- Is it worth doing?
+
+The owner wants to discuss it next session.
+
+- **Full research and feedback:** `docs/research/creator-pages-2026-11-03.md`. It holds:
+  - my thinking;
+  - the combined report;
+  - the market, technology and code research, with sources;
+  - the 5 option designs;
+  - the 3 reviews.
+
+  The plan as shown to the owner: `C:\Users\ryanc\.claude\plans\dynamic-churning-mccarthy.md`.
+
+- **Verdict:**
+  - **Customer logins:** already built. Keep guest checkout.
+  - **Creator logins: yes, after launch.**
+    - The same login as customers, with a "creator" role added.
+    - A read-only dashboard at `/account/creator` showing links, earnings by month and payments.
+    - About 2–3 build days and 1 migration.
+    - Start when 3 real creators have signed, or when a creator who brings bookings wants their numbers more often than monthly.
+  - **Own domains or subdomains: not worth building.**
+    - Logins and credit don't carry across domains.
+    - Every domain needs DNS support with no end date.
+    - None of the travel platforms researched (Viator, GetYourGuide, Expedia, Booking.com, Airbnb) do it.
+    - A creator can point their own domain at their Truth page with a 301 redirect, for free.
+- **Phase 1, before recruiting creators** (about 1–2 sessions, no migration):
+  - `?via=` links that carry credit to any experience;
+  - credit only for visits that start outside Truth;
+  - a "creators earn a share, you pay the same" line;
+  - share links in admin;
+  - creator statements by month.
+- **Gaps today (checked in the code):**
+  - Links to one experience earn nothing, because nothing reads a link parameter.
+  - A "Recommended by" tap moves the credit to that creator.
+  - Creator statements print the booking code, exact date and guest count (`payment-history/[id]/page.tsx`).
+  - Safari can clear localStorage after 7 days without a visit.
+- **Ideas from outside the box, none needing a build:**
+  - dates co-hosted by a creator;
+  - "creator-tested" reviews, labelled as such;
+  - "paid monthly in rands" as the pitch to creators;
+  - TikTok and WhatsApp first, with checkout codes later.
+- **Decisions for the owner** (the research file has the recommended defaults):
+  1. What earns credit.
+  2. The rate and how payouts work.
+  3. Whether creators can earn on their own bookings.
+  4. The public address (keep `/creators/<name>`).
+  5. What creators see.
+- **Questions to discuss:**
+  - The 5 decisions.
+  - Phase 1 before launch?
+  - Are there real creators in mind?
+  - Try a co-hosted date or a creator-tested review?
+  - Is 5% right? Viator pays 8%.
 
 ### Done in the 2026-10-30 session
 
@@ -250,6 +327,13 @@ Plan: `C:\Users\ryanc\.claude\plans\dazzling-chasing-unicorn.md`.
 - **Admin:** email + password + existing TOTP; access needs aal2 plus a row in `public.admins`.
 
 ## Test data in the shared Supabase project
+
+- **Demo set (added 2026-11-03 for showing the app):** 5 hosts, 2 creators and 8 experiences, each with an itinerary, a weekly schedule and 2–3 reviews.
+  - Every id starts with `de`: hosts `dea00000-…`, creators `deb00000-…`, experiences `dee00000-…`. To remove the set, delete by those ids (child rows first: referrals, reviews, itineraries, schedules, blackouts). Experiences that already have bookings can't be deleted that way; deactivate them instead.
+  - Hosts: Thandi Nkosi (Cape Town), Fatima Davids (Bo-Kaap), Sipho Dlamini (Soweto), Anri van Wyk (Knysna), Ayanda Mthembu (Durban). Emails are `…demo@example.com`.
+  - Creators: Zanele Eats (`/creators/zanele-eats`), Trail & Tide (`/creators/trail-and-tide`).
+  - The set adds two new categories, Nature and Wellness. Photos are Pexels, checked by eye. The Soweto and Durban photos are stand-ins: Cape Town cyclists, and curry with bread instead of bunny chow.
+  - After adding data straight to the database, restart the dev server (or save any experience in admin) so the cached lists refresh.
 
 - Paid test booking `c07a5651…` (2 Nov): later cancelled, with the R178,50 refund pending in Paystack.
 - An expired hold `c44851df…` (31 Oct).
