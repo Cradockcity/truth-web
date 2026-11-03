@@ -181,6 +181,11 @@ The owner wants to discuss it next session.
   - Are there real creators in mind?
   - Try a co-hosted date or a creator-tested review?
   - Is 5% right? Viator pays 8%.
+  - **Two creators recommend the same experience: who gets paid?** The owner raised this on 2026-11-03.
+    - **Today:** only one creator is ever paid per booking. A booking has one `creator_id`, and `payout_items` is unique per booking and recipient.
+    - **Who it is:** the creator whose page the guest last opened on that device in the last 30 days, as long as they recommend the experience.
+    - **The catch:** tapping a "Recommended by" button inside Truth counts as visiting that creator's page, so the tap moves the credit to them.
+    - **My recommendation (decision 1):** only visits that start outside Truth earn credit. The owner wants to settle this next session.
 
 ### Done in the 2026-10-30 session
 
